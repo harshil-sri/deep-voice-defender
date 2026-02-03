@@ -1,0 +1,17 @@
+# CORE ML (Modern TensorFlow for WSL2)
+tensorflow[and-cuda]   # Automatically gets CUDA 12 support
+numpy
+scikit-learn
+pandas
+
+# AUDIO PROCESSING
+librosa
+soundfile
+pydub
+ffmpeg-python
+
+# UI & TOOLS
+streamlit
+matplotlib
+seaborn
+jupyterlab
