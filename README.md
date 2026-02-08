@@ -114,8 +114,8 @@ python src/model.py
 
 | Name | Role | GitHub |
 | :--- | :--- | :--- |
-| **Harshil** | Lead Developer / AI Engineer | [@Harshil](https://github.com/YOUR_USERNAME) |
-| **Mrigank** | Developer / Data Engineer | [@Mrigank](https://github.com/HIS_USERNAME) |
+| **Harshil** | Lead Developer / AI Engineer | [@Harshil](https://github.com/harshil-sri) |
+| **Mrigank** | Developer / Data Engineer | [@Mrigank](https://github.com/mrigank-rana) |
 
 ---
 
