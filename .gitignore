@@ -1,6 +1,19 @@
-venv/
-__pycache__/
+# Ignore Data
 data/
+*.wav
+*.mp3
+*.ogg
+*.npy
+
+# Ignore Python Cache
+__pycache__/
 *.pyc
+
+# Ignore Environment
+venv/
+.venv/
 .env
-models/
+
+# Ignore Large Models
+models/*.h5
+models/*.keras
