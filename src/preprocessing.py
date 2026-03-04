@@ -34,3 +34,4 @@ if __name__ == "__main__":
         print(f"✅ Spectrogram Created. Shape: {spec.shape} (Should be (128, X))")
     except Exception as e:
         print(f"❌ Error: {e}")
+        #librosa.display.specshow(audio, x_axis='time', y_axis='mel', sr=16000)
