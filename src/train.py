@@ -7,7 +7,6 @@ from preprocessing import load_audio,audio_to_mel
 from augmentation import augment_audio
 from model import build_model
 import librosa
-tf.config.set_visible_devices([], 'GPU')
 def get_labels(protocol_file_path):
     labels_dict={}
     with open(protocol_file_path, 'r') as file:
@@ -62,7 +61,7 @@ class AudioDataGenerator(Sequence):
             label=self.labels_dict[file_id]
             x.append(spectrogram)
             y.append(label)
-        return np.array(x), np.array(y)
+        return np.expand_dims(np.array(x), axis=-1), np.array(y)
     
 if __name__ == "__main__":
     #Define where your data is
@@ -100,6 +99,4 @@ if __name__ == "__main__":
     #Save the trained brain to your hard drive
     print("Training complete. Saving model...")
     model.save("deep_voice_defender_v1.keras")
-    print("Model saved successfully!")    
-
-            
+    print("Model saved successfully!")         
