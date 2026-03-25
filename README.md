@@ -98,8 +98,8 @@ python src/model.py
 - [x] **Project Setup:** GitHub Repo, WSL Environment, GPU Configuration.
 - [x] **Data Pipeline:** Audio Loading, Resampling, Padding.
 - [x] **Augmentation Engine:** Build `augmentation.py` to simulate OPUS/Noise.
-- [ ] **Model Architecture:** Design Robust CNN (Conv2D, MaxPool).
-- [ ] **Training:** Run training loop on RTX 4060/5060.
+- [x] **Model Architecture:** Design Robust CNN (Conv2D, MaxPool).
+- [x] **Training:** Run training loop on RTX 4060/5060.
 - [ ] **Testing:** Test specifically on files sent via WhatsApp to verify USP.
 
 ---
