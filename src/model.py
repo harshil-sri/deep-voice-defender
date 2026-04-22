@@ -4,18 +4,29 @@ def build_model(input_shape):
 
     model = models.Sequential()
 
+    # Block 1
     model.add(layers.Conv2D(filters = 32, kernel_size = (3, 3), activation='relu', input_shape=input_shape))
+    model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D( pool_size = (2, 2)))
+    model.add(layers.Dropout(0.25))
 
+    # Block 2
     model.add(layers.Conv2D(filters = 64, kernel_size = (3, 3), activation='relu'))
+    model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D( pool_size = (2, 2)))
+    model.add(layers.Dropout(0.25))
 
+    # Block 3
     model.add(layers.Conv2D(filters = 128, kernel_size = (3, 3), activation='relu'))
+    model.add(layers.BatchNormalization())
     model.add(layers.MaxPooling2D( pool_size = (2, 2)))
+    model.add(layers.Dropout(0.25))
 
     model.add(layers.Flatten())
 
+    # Fully Connected
     model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.BatchNormalization())
 
     model.add(layers.Dropout(0.5))
 

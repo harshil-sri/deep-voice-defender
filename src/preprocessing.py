@@ -20,6 +20,9 @@ def load_audio(file_path):
 def audio_to_mel(final_array):
     spectrogram_final = librosa.feature.melspectrogram(y = final_array, sr =16000, n_mels = 128)
     x = librosa.power_to_db(spectrogram_final, ref=np.max)
+    # --- FIX: Normalize the Spectrogram ---
+    # Min-Max Scaling to [0, 1] helps CNNs converge much faster
+    x = (x - np.min(x)) / (np.max(x) - np.min(x) + 1e-8)
     return(x)
 
 if __name__ == "__main__":
