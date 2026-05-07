@@ -157,7 +157,8 @@ def main():
             st.audio(uploaded_file, format=f'audio/{uploaded_file.name.split(".")[-1]}')
         
         # We need to save the file temporarily to use librosa load
-        temp_file_path = os.path.join("/tmp", uploaded_file.name)
+        import tempfile
+        temp_file_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
         with open(temp_file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
