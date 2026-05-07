@@ -1,5 +1,6 @@
-# CORE ML (Modern TensorFlow for WSL2)
-tensorflow[and-cuda]   # Automatically gets CUDA 12 support
+# CORE ML
+tensorflow[and-cuda]   # Use 'tensorflow' instead of 'tensorflow[and-cuda]' if your laptop doesn't have an NVIDIA GPU
+nvidia-cuda-nvcc-cu12  # Required for XLA compiler on NVIDIA GPUs
 numpy
 scikit-learn
 pandas
