@@ -18,3 +18,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def compute_eer(y_true, y_scores):
     fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+    try:
+        eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+    except ValueError:
+        eer = 0.5
+    return eer, fpr, tpr, thresholds
+
+def compute_min_tDCF(y_true, y_scores):
+    fpr, tpr, _ = roc_curve(y_true, y_scores)
+    fnr = 1 - tpr
+    c_miss = 1.0
+    c_fa = 1.0
+    p_target = 0.01
+    t_dcf = c_miss * p_target * fnr + c_fa * (1 - p_target) * fpr
+    return np.min(t_dcf)
+
+def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
