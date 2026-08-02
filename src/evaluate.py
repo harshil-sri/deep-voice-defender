@@ -34,3 +34,14 @@ def compute_min_tDCF(y_true, y_scores):
     return np.min(t_dcf)
 
 def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
+    print(f"\n{'='*60}")
+    print(f"EVALUATING: {model_path}")
+    print(f"PROTOCOL: {protocol_file}")
+    print(f"DATA DIR: {audio_dir}")
+    print(f"{'='*60}\n")
+
+    model = tf.keras.models.load_model(model_path, compile=False)
+
+    labels = {}
+    with open(protocol_file, 'r') as f:
+        for line in f:
