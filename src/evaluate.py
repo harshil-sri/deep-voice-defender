@@ -55,3 +55,15 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     y_true = []
     y_scores = []
     y_pred = []
+    file_ids = []
+    latencies = []
+
+    for file_id, label in labels.items():
+        flac_path = os.path.join(audio_dir, f"{file_id}.flac")
+        if not os.path.exists(flac_path):
+            print(f"Missing: {flac_path}")
+            continue
+
+        start = tf.timestamp()
+        raw_audio = load_audio(flac_path)
+        spectrogram = audio_to_mel(raw_audio)
