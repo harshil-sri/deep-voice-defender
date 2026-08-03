@@ -45,3 +45,13 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     labels = {}
     with open(protocol_file, 'r') as f:
         for line in f:
+            parts = line.strip().split()
+            file_id = parts[1]
+            label_text = parts[-1]
+            labels[file_id] = 1 if label_text == "bonafide" else 0
+
+    print(f"Loaded {len(labels)} entries from protocol")
+
+    y_true = []
+    y_scores = []
+    y_pred = []
