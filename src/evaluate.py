@@ -67,3 +67,9 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
         start = tf.timestamp()
         raw_audio = load_audio(flac_path)
         spectrogram = audio_to_mel(raw_audio)
+        input_data = np.expand_dims(np.expand_dims(spectrogram, 0), -1)
+
+        prediction = model.predict(input_data, verbose=0)
+        score = float(prediction[0][0])
+
+        end = tf.timestamp()
