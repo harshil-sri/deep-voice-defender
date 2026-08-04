@@ -73,3 +73,15 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
         score = float(prediction[0][0])
 
         end = tf.timestamp()
+        latency_ms = (end - start).numpy() * 1000
+
+        y_true.append(label)
+        y_scores.append(score)
+        y_pred.append(1 if score >= 0.5 else 0)
+        file_ids.append(file_id)
+        latencies.append(latency_ms)
+
+    y_true = np.array(y_true)
+    y_scores = np.array(y_scores)
+    y_pred = np.array(y_pred)
+
