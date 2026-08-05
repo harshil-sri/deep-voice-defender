@@ -85,3 +85,14 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     y_scores = np.array(y_scores)
     y_pred = np.array(y_pred)
 
+    print(f"Evaluated {len(y_true)} files")
+
+    eer, fpr, tpr, thresholds = compute_eer(y_true, y_scores)
+    min_tdcf = compute_min_tDCF(y_true, y_scores)
+    acc = np.mean(y_pred == y_true)
+    auc_score = auc(fpr, tpr)
+
+    precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='binary')
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+
+    avg_latency = np.mean(latencies)
