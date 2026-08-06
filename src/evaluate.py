@@ -96,3 +96,17 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
     avg_latency = np.mean(latencies)
+    p50_latency = np.percentile(latencies, 50)
+    p95_latency = np.percentile(latencies, 95)
+
+    print(f"\n{'='*60}")
+    print(f"RESULTS")
+    print(f"{'='*60}")
+    print(f"EER:           {eer*100:.2f}%")
+    print(f"min t-DCF:     {min_tdcf:.4f}")
+    print(f"Accuracy:      {acc*100:.2f}%")
+    print(f"AUC:           {auc_score:.4f}")
+    print(f"Precision:     {precision:.4f}")
+    print(f"Recall:        {recall:.4f}")
+    print(f"F1:            {f1:.4f}")
+    print(f"TP: {tp}  FP: {fp}  TN: {tn}  FN: {fn}")
