@@ -116,3 +116,12 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
 
     os.makedirs(output_dir, exist_ok=True)
 
+    results = {
+        "model_path": model_path,
+        "protocol_file": protocol_file,
+        "audio_dir": audio_dir,
+        "timestamp": datetime.now().isoformat(),
+        "num_samples": int(len(y_true)),
+        "metrics": {
+            "eer": float(eer),
+            "eer_percent": float(eer * 100),
