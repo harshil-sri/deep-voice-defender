@@ -110,3 +110,9 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     print(f"Recall:        {recall:.4f}")
     print(f"F1:            {f1:.4f}")
     print(f"TP: {tp}  FP: {fp}  TN: {tn}  FN: {fn}")
+    print(f"Avg Latency:   {avg_latency:.1f} ms")
+    print(f"P50 Latency:   {p50_latency:.1f} ms")
+    print(f"P95 Latency:   {p95_latency:.1f} ms")
+
+    os.makedirs(output_dir, exist_ok=True)
+
