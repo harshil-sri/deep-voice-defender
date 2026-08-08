@@ -125,3 +125,12 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
         "metrics": {
             "eer": float(eer),
             "eer_percent": float(eer * 100),
+            "min_tDCF": float(min_tdcf),
+            "accuracy": float(acc),
+            "auc": float(auc_score),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "confusion_matrix": {"tp": int(tp), "fp": int(fp), "tn": int(tn), "fn": int(fn)},
+            "latency_ms": {
+                "mean": float(avg_latency),
