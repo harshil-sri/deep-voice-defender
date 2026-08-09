@@ -134,3 +134,20 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
             "confusion_matrix": {"tp": int(tp), "fp": int(fp), "tn": int(tn), "fn": int(fn)},
             "latency_ms": {
                 "mean": float(avg_latency),
+                "p50": float(p50_latency),
+                "p95": float(p95_latency)
+            }
+        }
+    }
+
+    model_name = os.path.basename(model_path).replace('.keras', '')
+    json_path = os.path.join(output_dir, f"eval_{model_name}.json")
+    with open(json_path, 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"\nSaved metrics to {json_path}")
+
+    fig_dir = os.path.join(output_dir, "figures")
+    os.makedirs(fig_dir, exist_ok=True)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, label=f'ROC (AUC = {auc_score:.3f})', linewidth=2)
