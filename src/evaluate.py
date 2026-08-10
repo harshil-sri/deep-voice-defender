@@ -151,3 +151,10 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
 
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, label=f'ROC (AUC = {auc_score:.3f})', linewidth=2)
+    plt.plot([0, 1], [0, 1], 'k--', alpha=0.5)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'ROC Curve - {model_name}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
