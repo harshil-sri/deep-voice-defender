@@ -158,3 +158,17 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
+    roc_path = os.path.join(fig_dir, f"roc_{model_name}.png")
+    plt.savefig(roc_path, dpi=150)
+    plt.close()
+
+    plt.figure(figsize=(8, 6))
+    fnr = 1 - tpr
+    plt.plot(fpr, fnr, label='DET Curve', linewidth=2, color='orange')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('False Negative Rate')
+    plt.title(f'DET Curve - {model_name}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    det_path = os.path.join(fig_dir, f"det_{model_name}.png")
