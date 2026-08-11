@@ -183,3 +183,15 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     classes = ['Spoof', 'Bonafide']
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes)
+    plt.yticks(tick_marks, classes)
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            plt.text(j, i, format(cm[i, j], 'd'),
+                     ha="center", va="center",
+                     color="white" if cm[i, j] > thresh else "black")
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.tight_layout()
+    cm_path = os.path.join(fig_dir, f"cm_{model_name}.png")
+    plt.savefig(cm_path, dpi=150)
