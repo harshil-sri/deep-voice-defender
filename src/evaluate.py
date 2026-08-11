@@ -172,3 +172,14 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     det_path = os.path.join(fig_dir, f"det_{model_name}.png")
+    plt.savefig(det_path, dpi=150)
+    plt.close()
+
+    plt.figure(figsize=(6, 5))
+    cm = confusion_matrix(y_true, y_pred)
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(f'Confusion Matrix - {model_name}')
+    plt.colorbar()
+    classes = ['Spoof', 'Bonafide']
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes)
