@@ -201,3 +201,10 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
 
     return results
 
+if __name__ == "__main__":
+    MODEL_PATH = "deep_voice_defender_v1.keras"
+    PROTOCOL_FILE = "data/raw/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt"
+    AUDIO_DIR = "data/raw/LA/LA/ASVspoof2019_LA_eval/flac"
+    OUTPUT_DIR = "results"
+
+    if not os.path.exists(MODEL_PATH):
