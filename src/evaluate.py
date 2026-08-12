@@ -208,3 +208,9 @@ if __name__ == "__main__":
     OUTPUT_DIR = "results"
 
     if not os.path.exists(MODEL_PATH):
+        print(f"Model not found: {MODEL_PATH}")
+        sys.exit(1)
+    if not os.path.exists(PROTOCOL_FILE):
+        print(f"Protocol not found: {PROTOCOL_FILE}")
+        sys.exit(1)
+    if not os.path.exists(AUDIO_DIR):
