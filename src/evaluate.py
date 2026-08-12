@@ -195,3 +195,9 @@ def evaluate_model(model_path, protocol_file, audio_dir, output_dir="results"):
     plt.tight_layout()
     cm_path = os.path.join(fig_dir, f"cm_{model_name}.png")
     plt.savefig(cm_path, dpi=150)
+    plt.close()
+
+    print(f"Saved figures to {fig_dir}/")
+
+    return results
+
