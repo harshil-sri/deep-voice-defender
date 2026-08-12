@@ -214,3 +214,7 @@ if __name__ == "__main__":
         print(f"Protocol not found: {PROTOCOL_FILE}")
         sys.exit(1)
     if not os.path.exists(AUDIO_DIR):
+        print(f"Audio dir not found: {AUDIO_DIR}")
+        sys.exit(1)
+
+    evaluate_model(MODEL_PATH, PROTOCOL_FILE, AUDIO_DIR, OUTPUT_DIR)
