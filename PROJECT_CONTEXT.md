@@ -31,3 +31,14 @@
 | **Ablation study** | Cannot isolate contribution of OPUS vs. noise vs. none |
 | **Baseline comparison** | No vanilla CNN (no augmentation) to compare against |
 | **Training logs/curves** | No TensorBoard, no loss/accuracy plots saved |
+| **Cross-corpus test** | Never tested on actual WhatsApp-compressed audio |
+| **Statistical rigor** | Single seed, no confidence intervals, no multiple runs |
+
+### The "Fake Numbers" Problem
+
+**README.md currently claims:**
+- "99% accuracy on clean data" → **Unverified, no evaluation code exists**
+- "Works on WhatsApp" → **Simulates OPUS in training, but never tested on real WhatsApp audio**
+- Comparison table (Standard vs. Defender) → **Purely aspirational, no experimental data**
+
+**Graphify analysis confirmed:** 27% of graph edges are INFERRED (not extracted from code). The inferred edges (main→load_audio, predict_suspect→audio_to_mel, etc.) are **actually correct** — the code does call them. But the performance claims are fabricated.
