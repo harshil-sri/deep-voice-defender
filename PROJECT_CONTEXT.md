@@ -52,3 +52,14 @@
 A complete, honest, reproducible experimental paper with:
 1. **Real evaluation** on ASVspoof 2019 LA eval set (EER, min t-DCF, AUC, accuracy)
 2. **Ablation study** — 4 training runs: (a) no augmentation, (b) OPUS only, (c) noise only, (d) full
+3. **Baseline comparison** — vanilla CNN vs. Defender CNN
+4. **Cross-corpus validation** — test on real WhatsApp/Telegram compressed audio
+5. **Statistical rigor** — 3 seeds, confidence intervals, training curves
+6. **Written paper** — 6-8 pages: Introduction, Related Work, Method, Experiments, Results, Conclusion
+
+**Target venue:** College research journal / conference (BTEC level)  
+**Deliverable:** PDF + GitHub repo with reproducible code + trained models
+
+---
+
+## 3. How We Continue (Workflow)
