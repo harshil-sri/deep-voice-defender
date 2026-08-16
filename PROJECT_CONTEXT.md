@@ -42,3 +42,13 @@
 - Comparison table (Standard vs. Defender) → **Purely aspirational, no experimental data**
 
 **Graphify analysis confirmed:** 27% of graph edges are INFERRED (not extracted from code). The inferred edges (main→load_audio, predict_suspect→audio_to_mel, etc.) are **actually correct** — the code does call them. But the performance claims are fabricated.
+
+---
+
+## 2. What Option A Is
+
+**Option A = Real Research Paper (2 weeks)**
+
+A complete, honest, reproducible experimental paper with:
+1. **Real evaluation** on ASVspoof 2019 LA eval set (EER, min t-DCF, AUC, accuracy)
+2. **Ablation study** — 4 training runs: (a) no augmentation, (b) OPUS only, (c) noise only, (d) full
