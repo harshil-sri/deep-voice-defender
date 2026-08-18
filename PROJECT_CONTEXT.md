@@ -92,3 +92,20 @@ Statistical comparison (mean ± std EER)
 
 ### Phase 3: Cross-Corpus Test (Days 8-9)
 ```
+Collect 50+ real WhatsApp voice notes (bonafide + spoof)
+    ↓
+Create src/test_whatsapp.py
+    ↓
+Run all 4 model variants on WhatsApp test set
+    ↓
+Report degradation vs. clean eval
+```
+
+### Phase 4: Paper Writing (Days 10-14)
+```
+Generate all tables/figures from results/
+    ↓
+Write paper in Overleaf/LaTeX or Markdown→PDF
+    ↓
+Sections: Abstract, Intro, Related Work, Method, Experiments, Results, Discussion, Conclusion
+    ↓
