@@ -63,3 +63,16 @@ A complete, honest, reproducible experimental paper with:
 ---
 
 ## 3. How We Continue (Workflow)
+
+### Phase 1: Evaluation Infrastructure (Days 1-2)
+```
+Create src/evaluate.py
+    ↓
+Run on ASVspoof 2019 LA eval set (already in data/raw/)
+    ↓
+Get: EER, min t-DCF, AUC, accuracy, ROC/DET curves
+    ↓
+Save results to results/eval_baseline.json
+```
+
+### Phase 2: Ablation Training (Days 3-7)
