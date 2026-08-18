@@ -109,3 +109,9 @@ Write paper in Overleaf/LaTeX or Markdown→PDF
     ↓
 Sections: Abstract, Intro, Related Work, Method, Experiments, Results, Discussion, Conclusion
     ↓
+Push final code + models + paper to GitHub
+```
+
+---
+
+## 4. Detailed To-Do List
