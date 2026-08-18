@@ -76,3 +76,19 @@ Save results to results/eval_baseline.json
 ```
 
 ### Phase 2: Ablation Training (Days 3-7)
+```
+Modify train.py to accept --augmentation_mode flag
+    ↓
+Train 4 variants (3 seeds each = 12 runs):
+  1. none      — no augmentation
+  2. opus_only — simulate_opus only
+  3. noise_only — add_noise only
+  4. full      — current augment_audio (50/25/25)
+    ↓
+Evaluate all 12 models on eval set
+    ↓
+Statistical comparison (mean ± std EER)
+```
+
+### Phase 3: Cross-Corpus Test (Days 8-9)
+```
