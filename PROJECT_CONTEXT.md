@@ -125,3 +125,14 @@ Push final code + models + paper to GitHub
 ### 🔧 Phase 1: Evaluation (Days 1-2)
 - [ ] **Create `src/evaluate.py`** — load model, iterate eval protocol, compute EER/min_tDCF/AUC/acc
 - [ ] **Add ROC/DET curve plotting** — save to `results/figures/roc.png`, `det.png`
+- [ ] **Add confusion matrix** — save to `results/figures/cm.png`
+- [ ] **Run baseline evaluation** — current `deep_voice_defender_v1.keras` on eval set
+- [ ] **Save metrics** — `results/eval_full_model.json`
+- [ ] **Verify "99% accuracy" claim** — replace with real numbers in README
+
+### 🔧 Phase 2: Ablation Study (Days 3-7)
+- [ ] **Modify `src/augmentation.py`** — add `mode` parameter: `none`, `opus`, `noise`, `full`
+- [ ] **Modify `src/train.py`** — accept `--aug_mode` CLI arg, pass to generator
+- [ ] **Create `scripts/run_ablation.sh`** — loop over 4 modes × 3 seeds = 12 trainings
+- [ ] **Run 12 trainings** — each saves `deep_voice_defender_{mode}_seed{}.keras`
+- [ ] **Evaluate all 12 models** — `results/ablation/raw_scores.csv`
