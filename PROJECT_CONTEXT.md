@@ -115,3 +115,13 @@ Push final code + models + paper to GitHub
 ---
 
 ## 4. Detailed To-Do List
+
+### ✅ Already Done (Foundation)
+- [x] End-to-end pipeline works (train → model → predict → Streamlit)
+- [x] ASVspoof 2019 LA dataset downloaded
+- [x] Pre-trained model exists (`deep_voice_defender_v1.keras`)
+- [x] GPU environment configured (train.py auto-configures LD_LIBRARY_PATH)
+
+### 🔧 Phase 1: Evaluation (Days 1-2)
+- [ ] **Create `src/evaluate.py`** — load model, iterate eval protocol, compute EER/min_tDCF/AUC/acc
+- [ ] **Add ROC/DET curve plotting** — save to `results/figures/roc.png`, `det.png`
