@@ -136,3 +136,16 @@ Push final code + models + paper to GitHub
 - [ ] **Create `scripts/run_ablation.sh`** — loop over 4 modes × 3 seeds = 12 trainings
 - [ ] **Run 12 trainings** — each saves `deep_voice_defender_{mode}_seed{}.keras`
 - [ ] **Evaluate all 12 models** — `results/ablation/raw_scores.csv`
+- [ ] **Compute statistics** — mean ± std EER per mode, significance tests
+- [ ] **Generate ablation table** — `results/tables/ablation.tex`
+
+### 🔧 Phase 3: Cross-Corpus (Days 8-9)
+- [ ] **Collect WhatsApp test set** — 25 bonafide + 25 spoof voice notes (record/collect)
+- [ ] **Create `src/test_cross_corpus.py`** — evaluate all 4 best models on WhatsApp set
+- [ ] **Report relative degradation** — (EER_whatsapp - EER_clean) / EER_clean
+- [ ] **Save results** — `results/cross_corpus.json`
+
+### 🔧 Phase 4: Paper & Polish (Days 10-14)
+- [ ] **Training curves** — add TensorBoard callback, export loss/acc/AUC plots
+- [ ] **Model complexity table** — params, MACs, inference latency (CPU/GPU)
+- [ ] **Write paper** — `paper/main.tex` or `paper/main.md`
