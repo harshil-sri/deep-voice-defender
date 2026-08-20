@@ -175,3 +175,9 @@ Deep-Voice-Defender/
 ├── app.py                          # Streamlit UI (unchanged)
 ├── requirements.txt
 ├── README.md                       # Updated with REAL results
+├── PROJECT_CONTEXT.md              # This file
+├── src/
+│   ├── __init__.py
+│   ├── preprocessing.py            # Unchanged
+│   ├── augmentation.py             # + mode parameter
+│   ├── model.py                    # Unchanged
