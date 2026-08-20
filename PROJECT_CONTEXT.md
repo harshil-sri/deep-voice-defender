@@ -149,3 +149,18 @@ Push final code + models + paper to GitHub
 - [ ] **Training curves** — add TensorBoard callback, export loss/acc/AUC plots
 - [ ] **Model complexity table** — params, MACs, inference latency (CPU/GPU)
 - [ ] **Write paper** — `paper/main.tex` or `paper/main.md`
+- [ ] **Create reproducibility README** — exact commands to reproduce all results
+- [ ] **Push to GitHub** — clean repo with `results/`, `paper/`, trained models
+
+---
+
+## 5. Key Technical Decisions (Don't Re-Debate)
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Eval metric** | EER + min t-DCF | ASVspoof 2019 LA standard |
+| **Ablation modes** | 4 (none, opus, noise, full) | Isolates each component |
+| **Seeds** | 3 (42, 123, 456) | Balance rigor vs. compute time |
+| **Class weights** | Keep {0:1, 1:9} | ASVspoof LA is 9:1 bonafide:spoof |
+| **Input shape** | (128, 128, 1) | Fixed by preprocessing (4s @ 16kHz → 128×128) |
+| **Framework** | TensorFlow/Keras | Already used, model exists |
