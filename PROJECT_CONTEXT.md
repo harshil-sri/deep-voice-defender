@@ -164,3 +164,14 @@ Push final code + models + paper to GitHub
 | **Class weights** | Keep {0:1, 1:9} | ASVspoof LA is 9:1 bonafide:spoof |
 | **Input shape** | (128, 128, 1) | Fixed by preprocessing (4s @ 16kHz → 128×128) |
 | **Framework** | TensorFlow/Keras | Already used, model exists |
+| **Paper format** | LaTeX (Overleaf) | Standard for research |
+
+---
+
+## 6. File Structure After Completion
+
+```
+Deep-Voice-Defender/
+├── app.py                          # Streamlit UI (unchanged)
+├── requirements.txt
+├── README.md                       # Updated with REAL results
