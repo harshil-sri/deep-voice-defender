@@ -181,3 +181,21 @@ Deep-Voice-Defender/
 │   ├── preprocessing.py            # Unchanged
 │   ├── augmentation.py             # + mode parameter
 │   ├── model.py                    # Unchanged
+│   ├── train.py                    # + --aug_mode CLI
+│   ├── predict.py                  # Unchanged
+│   ├── evaluate.py                 # NEW
+│   └── test_cross_corpus.py        # NEW
+├── scripts/
+│   └── run_ablation.sh             # NEW
+├── data/
+│   └── raw/                        # ASVspoof 2019 LA (unchanged)
+├── results/
+│   ├── eval_full_model.json
+│   ├── ablation/
+│   │   ├── raw_scores.csv
+│   │   └── stats_summary.json
+│   ├── cross_corpus.json
+│   ├── figures/
+│   │   ├── roc.png
+│   │   ├── det.png
+│   │   ├── cm.png
