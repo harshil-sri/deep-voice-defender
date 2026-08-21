@@ -199,3 +199,17 @@ Deep-Voice-Defender/
 │   │   ├── roc.png
 │   │   ├── det.png
 │   │   ├── cm.png
+│   │   └── training_curves/
+│   └── tables/
+│       └── ablation.tex
+├── paper/
+│   ├── main.tex
+│   ├── references.bib
+│   └── figures/                    # Copied from results/figures
+└── models/
+    ├── deep_voice_defender_v1.keras           # Original
+    ├── deep_voice_defender_none_seed42.keras
+    ├── deep_voice_defender_opus_seed42.keras
+    ├── deep_voice_defender_noise_seed42.keras
+    └── deep_voice_defender_full_seed42.keras
+    ... (12 total)
