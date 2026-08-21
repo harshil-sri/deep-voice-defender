@@ -213,3 +213,20 @@ Deep-Voice-Defender/
     ├── deep_voice_defender_noise_seed42.keras
     └── deep_voice_defender_full_seed42.keras
     ... (12 total)
+```
+
+---
+
+## 7. Commands Reference (For Agents)
+
+```bash
+# Setup
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# Baseline evaluation (Phase 1)
+python src/evaluate.py
+
+# Ablation training (Phase 2)
+bash scripts/run_ablation.sh
+
