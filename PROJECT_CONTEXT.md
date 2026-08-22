@@ -230,3 +230,19 @@ python src/evaluate.py
 # Ablation training (Phase 2)
 bash scripts/run_ablation.sh
 
+# Cross-corpus test (Phase 3)
+python src/test_cross_corpus.py
+
+# Paper compile
+cd paper && latexmk -pdf main.tex
+```
+
+---
+
+## 8. Success Criteria (Definition of Done)
+
+- [ ] **EER on ASVspoof LA eval** reported with 3-seed mean ± std for all 4 modes
+- [ ] **Ablation table** shows statistically significant improvement from full augmentation
+- [ ] **Cross-corpus results** show <20% relative EER degradation on WhatsApp audio
+- [ ] **Paper** compiles to PDF, all tables/figures auto-generated from results/
+- [ ] **README.md** updated with real numbers, no fake claims
