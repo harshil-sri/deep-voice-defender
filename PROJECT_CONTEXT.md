@@ -254,3 +254,11 @@ cd paper && latexmk -pdf main.tex
 
 1. **Don't rewrite working code** — preprocessing, model, train, predict, app all work. Only add evaluation/ablation.
 2. **ASVspoof protocol files** — train: `...cm.train.trn.txt`, eval: `...cm.eval.trl.txt`
+3. **Audio paths** — train: `data/raw/LA/LA/ASVspoof2019_LA_train/flac/`, eval: `..._eval/flac/`
+4. **Model input** — always (128, 128, 1) after `np.expand_dims(spec, 0)` and `np.expand_dims(..., -1)`
+5. **Score interpretation** — sigmoid output: >0.5 = bonafide (human), <0.5 = spoof (fake)
+6. **GPU memory** — batch_size=32 works on RTX 4060/5060 (8GB VRAM)
+
+---
+
+**Next Action:** Start Phase 1 — create `src/evaluate.py` and run baseline evaluation.
