@@ -246,3 +246,11 @@ cd paper && latexmk -pdf main.tex
 - [ ] **Cross-corpus results** show <20% relative EER degradation on WhatsApp audio
 - [ ] **Paper** compiles to PDF, all tables/figures auto-generated from results/
 - [ ] **README.md** updated with real numbers, no fake claims
+- [ ] **GitHub repo** public, reproducible, includes all trained models
+
+---
+
+## 9. Notes for Future Agents
+
+1. **Don't rewrite working code** — preprocessing, model, train, predict, app all work. Only add evaluation/ablation.
+2. **ASVspoof protocol files** — train: `...cm.train.trn.txt`, eval: `...cm.eval.trl.txt`
