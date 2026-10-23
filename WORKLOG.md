@@ -12,7 +12,19 @@
 
 ---
 
-## Current status — BUILD COMPLETE, mrigankrana TOKEN VERIFIED, READY TO UPLOAD
+## Current status — PREP KERNEL RUNNING on harshilsrivastav (CPU); GPU training blocked on auth, see below
+
+### Kaggle auth findings (2026-10-23 evening) — IMPORTANT
+- mrigankrana's **legacy kaggle.json key** authenticates fine for READS (`datasets list/files`, `kernels status`) but the CLI (2.2.x) **rejects it for all UPLOADS** (datasets create, kernels push) — requires OAuth or a new-style access token.
+- Harshil's default `~/.kaggle/access_token` IS a new-style token → default CLI runs as **harshilsrivastav** and CAN push. His **GPU quota (30h) is already exhausted this week**; CPU quota is separate and prep uses CPU.
+- **Prep kernel v2 is RUNNING**: https://www.kaggle.com/code/harshilsrivastav/deepvoice-defender-prep (CPU session, ~3–4 h, resumable). v1 was killed and superseded because of a disk-budget bug (fixed: dev/eval now decode straight to mel shards; no 9 GB waveform caches; peak ~11 GB).
+- Data source: public Kaggle mirror **anishsarkar22/asvpoof-2019-dataset-la** (official zip layout, corpus under `…/LA/`; the kernel symlinks `/kaggle/input/asvpoof-2019-dataset-la/LA` → `data/raw/LA/LA`). The private 7.5 GB upload was abandoned (CLI can't upload with legacy key). Two mirrors are byte-identical to the official zip (anishsarkar22, hahunavth).
+- Training kernel metadata (`kaggle/kernel-metadata.json`) still points at mrigankrana + GPU. **To unblock GPU training, pick one:**
+  1. mrigankrana generates a new-style token (kaggle.com → Settings → API → "Create New Token") and we save it to `~/.kaggle-accounts/mrigankrana/access_token`, or
+  2. run `kaggle auth login` (OAuth device flow) with the mrigankrana config dir, or
+  3. in the browser as mrigankrana, create a kernel manually (attach `anishsarkar22/asvpoof-2019-dataset-la`, enable GPU+Internet, paste `kaggle/deepvoice_training.py`), or
+  4. wait for harshilsrivastav's weekly GPU quota reset and push the training kernel under his account (`sed mrigankrana/harshilsrivastav` on the metadata).
+- **After prep completes (check `kaggle kernels status harshilsrivastav/deepvoice-defender-prep`):** promote its output `repo/data/processed` to a dataset named `dvd-processed` (web UI: kernel → Output → "New Dataset"), then add `harshilsrivastav/dvd-processed` to the training kernel's `dataset_sources` and push the GPU training kernel (grid stage runs automatically on GPU).
 
 ### Kaggle auth (resolved 2026-10-23) — READ BEFORE RUNNING ANY KAGGLE COMMAND
 - Token for **mrigankrana** lives at `~/.kaggle-accounts/mrigankrana/kaggle.json` (legacy API key, VERIFIED: resolves via `kaggle config view` + authenticated `datasets list --mine`).
