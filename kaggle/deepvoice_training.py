@@ -31,7 +31,7 @@ if not os.path.isdir(REPO):
             subprocess.run(["cp", "-r", cand, REPO], check=False)
             break
     else:
-        subprocess.run(["git", "clone", "https://github.com/YOUR_USERNAME/Deep-Voice-Defender.git", REPO], check=True)
+        subprocess.run(["git", "clone", "https://github.com/YOUR_GITHUB_USERNAME/Deep-Voice-Defender.git", REPO], check=True)
 
 os.chdir(REPO)
 sys.path.insert(0, REPO)

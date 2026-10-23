@@ -40,7 +40,7 @@ def push_dataset(kaggle_json, version_note):
     """Create/update a private Kaggle dataset from data/raw/LA/LA."""
     meta = {
         "title": "ASVspoof 2019 LA",
-        "id": "PLACEHOLDER/asvspoof2019-la",  # user edits after first creation
+        "id": "mrigankrana/asvspoof2019-la",  # user edits after first creation
         "licenses": [{"name": "other"}],
     }
     folder = "data/raw/LA/LA"
