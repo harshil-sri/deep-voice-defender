@@ -25,6 +25,10 @@ def _kaggle_env(kaggle_json):
     Two quirks of the kaggle CLI (2.2.x) are handled here:
     - KAGGLE_CONFIG_DIR is ignored when an `access_token` exists in the DEFAULT
       ~/.kaggle — so HOME is also pointed at an isolated directory.
+    - access tokens are only looked up in $HOME/.kaggle/access_token or
+      KAGGLE_API_TOKEN, never in KAGGLE_CONFIG_DIR — so if an access_token file
+      sits next to the kaggle.json, it is exported as KAGGLE_API_TOKEN (a file
+      path is accepted by the CLI).
     - if the token file is not literally named kaggle.json, we copy it.
     """
     env = dict(os.environ)
@@ -32,6 +36,9 @@ def _kaggle_env(kaggle_json):
         kaggle_json = os.path.abspath(kaggle_json)
         config_dir = os.path.dirname(kaggle_json)
         env["KAGGLE_CONFIG_DIR"] = config_dir
+        access_token = os.path.join(config_dir, "access_token")
+        if os.path.exists(access_token):
+            env["KAGGLE_API_TOKEN"] = access_token
         if os.path.basename(kaggle_json) != "kaggle.json":
             os.makedirs(config_dir, exist_ok=True)
             tgt = os.path.join(config_dir, "kaggle.json")
