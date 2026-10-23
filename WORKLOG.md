@@ -15,17 +15,18 @@
 ## Current status — AUTONOMOUS PIPELINE ARMED (cron automation polls every 30 min); prep still RUNNING
 
 ### Automation (created 2026-10-23 late night) — how the pipeline runs itself
-- A ZCode cron automation (every 30 min) drives everything: when prep completes it
-  creates the **`mrigankrana/dvd-processed`** dataset **via CLI** (download prep kernel
-  output → restructure to `processed/` at root → `kaggle datasets create` as mrigankrana,
-  ~10 GB round trip through local disk, ~697 GB free), then pushes the GPU training
-  kernel under mrigankrana, then on every poll: monitors the session, downloads finished
-  output, uploads it as a new version of **`mrigankrana/dvd-grid-state`**, and re-pushes
+- A ZCode cron automation (every 30 min) drives everything else: when prep completes it
+  **notifies the user to do the ONE-TIME browser step** (Output tab → New Dataset →
+  title `dvd-processed`, PUBLIC — user preference: no 10 GB download through the local
+  disk, and WSL's free-disk number is not real disk), then pushes the GPU training
+  kernel under mrigankrana, then on every poll: monitors the session, downloads the
+  (small, few hundred MB) finished output, uploads it as a new version of
+  **`mrigankrana/dvd-grid-state`** (placeholder created, status `ready`), and re-pushes
   the kernel to continue the grid until all 15 runs + clean eval are done.
-- **Datasets live under mrigankrana (NOT harshilsrivastav)**: Kaggle only attaches a
-  dataset to a kernel if it is public or same-owner; CLI-created datasets are private,
-  so same-owner is the reliable route. (harshilsrivastav/dvd-grid-state exists as a
-  private placeholder — harmless leftover, ignored.)
+- `dvd-processed` is created by the USER as **harshilsrivastav** and made **PUBLIC**
+  (public ⇒ attachable by mrigankrana's kernel). Metadata sources:
+  `anishsarkar22/asvpoof-2019-dataset-la`, `harshilsrivastav/dvd-processed`,
+  `mrigankrana/dvd-grid-state`.
 - Kernel script changes enabling this (committed): deep processed wiring
   (`/kaggle/input/*/repo/data/processed` etc.), seeds `/kaggle/working/{models,results}`
   from the grid-state dataset, grid now runs unfinished runs only (epoch-cap/patience
