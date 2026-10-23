@@ -7,7 +7,7 @@
 - Scope: **Core grid + S1 only** = 5 augmentation modes × 3 seeds (42/123/456) = **15 training runs**:
   - `none` (no aug), `noise` (Gaussian @ random SNR 5–20 dB), `opus` (TRUE Opus via ffmpeg, random bitrate {6,12,24,48}k), `resample` (naive 16k→8k→16k — S1 head-to-head vs `opus`), `full` (50% none / 25% opus / 25% noise).
 - Preprocessing: **global-stat normalization**. All 15 runs trained fresh on Kaggle; v1 numbers are informal reference only.
-- **WhatsApp mini-set DROPPED.** Cross-corpus = ASVspoof 2021 LA eval (Zenodo DOI 10.5281/zenodo.4817532, Kaggle mirror exists) + codec-re-encode matrix on 2019 eval.
+- **WhatsApp mini-set DROPPED.** Cross-corpus = ASVspoof 2021 LA eval (Zenodo DOI 10.5281/zenodo.4837263, Kaggle mirror exists) + codec-re-encode matrix on 2019 eval.
 - All GPU work on Kaggle (user has multiple account tokens, 30 GPU-h/wk each) and/or Colab. NO local training (local TF broken — protobuf mismatch).
 
 ---
@@ -43,7 +43,7 @@
 5. Sanity training: `grid` with seed-42 `full` first — verify epoch time (target 1–3 min/epoch on P100) and dev EER curve before burning quota.
 6. Full grid (15 runs × ~60 epochs, est. 30–45 GPU-h total). Sessions: `grid --time_budget_h 8`, re-commit to continue.
 7. Eval sweeps: `eval` stage (clean dev+eval), then codec matrix (`scripts/build_codec_matrix.py` ~5–6 h CPU for eval, resumable) + `src/evaluate.py --condition ...` per model.
-8. Cross-corpus: `python scripts/fetch_asvspoof2021.py` (see `data/README_asvspoof2021.md` written by the research subagent for verified URLs/labels status), evaluate all 15 models on it.
+8. Cross-corpus: `python scripts/fetch_asvspoof2021.py` (see `docs/asvspoof2021.md` for VERIFIED facts: LA eval = Zenodo record 4837263; labels + official ASV scores only from asvspoof.org LA-keys-full.tar.gz — server was 503 on 2026-10-23, HF `SpeechAntiSpoofingBenchmarks/ASVspoof2021_LA` labels.parquet is a verified fallback; 2021 protocol = single-col trl list, labels/codec/attack in keys bundle `trial_metadata.txt` 8 columns; Kaggle mirror mohammedabdeldayem/avsspoof-2021 has the full LA eval audio), evaluate all 15 models on it.
 9. `scripts/stats.py` + `scripts/make_figures.py` + `scripts/efficiency.py` → paper tables/figures; write paper per `paper/PLAN.md` checklist.
 
 ### KEY NUMBERS / FACTS FOR HANDOFF

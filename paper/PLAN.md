@@ -47,7 +47,7 @@ Priority order: all seed 42 first, then 123, then 456. Grid priority list is in
 - Splits: dev (model selection only) and eval (all tables).
 - Conditions on eval: `clean` + 11 codec conditions from `src/codec.CODEC_MATRIX`
   (opus 6/12/24/48k, mp3 16/32/64k, aac 16/32k, amr-nb 4.75/12.2k).
-- Cross-corpus: ASVspoof 2021 LA eval (Zenodo 10.5281/zenodo.4817532; Kaggle
+- Cross-corpus: ASVspoof 2021 LA eval (Zenodo 10.5281/zenodo.4837263; Kaggle
   mirror exists). Verify 2021 eval labels + protocol format at download time;
   report EER there (t-DCF needs 2021 ASV scores — check availability; else EER
   only, footnote it).
