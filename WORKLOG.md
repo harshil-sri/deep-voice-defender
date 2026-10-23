@@ -12,7 +12,28 @@
 
 ---
 
-## Current status — AUTONOMOUS PIPELINE ARMED (cron automation polls every 30 min); prep still RUNNING
+## Current status — FULLY AUTONOMOUS (no user steps at all); prep still RUNNING, training starts automatically when it completes
+
+### Fully hands-off design (final, 2026-10-24 ~03:20 IST)
+- **No browser dataset promotion is needed.** The training kernel mounts the prep
+  kernel's output directly via `kernel_sources: ["harshilsrivastav/deepvoice-defender-prep"]`
+  in `kaggle/kernel-metadata.json` — Kaggle mounts a kernel source's last successful
+  output at `/kaggle/input/<slug>/` (here `/kaggle/input/deepvoice-defender-prep/repo/data/processed/...`),
+  which the kernel's deep wiring glob picks up. Works cross-account because the prep
+  kernel is PUBLIC. (The `dvd-processed` dataset idea is ABANDONED — don't create it.)
+- Continuity across training sessions: `mrigankrana/dvd-grid-state` dataset (created,
+  status ready, private, same-owner with the kernel — uploads via mrigankrana's access
+  token, verified). The kernel seeds `/kaggle/working/{models,results}` from any
+  `/kaggle/input/*/models|results` at startup.
+- ZCode cron automation "DeepVoice pipeline monitor" (every 30 min) runs the whole
+  state machine: prep status → push training kernel once prep is COMPLETE → on each
+  finished/failed session: download small output → archive to dvd-grid-state → re-push
+  to continue the grid → auto-eval after all 15 runs → stats + commit. User can sleep.
+- Prep started 21:12 UTC (02:42 IST); 3–4 h ⇒ COMPLETE ≈ 05:45–06:45 IST.
+- mrigankrana GPU quota is fresh (30 h/wk). Grid ≈ 20–25 GPU-h + eval ⇒ should fit one
+  week; automation records quota errors and stops retrying until weekly reset.
+
+## Previous status — AUTONOMOUS PIPELINE ARMED (cron automation polls every 30 min); prep still RUNNING
 
 ### Automation (created 2026-10-23 late night) — how the pipeline runs itself
 - A ZCode cron automation (every 30 min) drives everything else: when prep completes it

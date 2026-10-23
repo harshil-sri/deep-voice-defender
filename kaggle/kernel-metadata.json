@@ -7,7 +7,7 @@
   "is_private": "true",
   "enable_gpu": "true",
   "enable_internet": "true",
-  "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la", "harshilsrivastav/dvd-processed", "mrigankrana/dvd-grid-state"],
+  "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la", "mrigankrana/dvd-grid-state"],
   "competition_sources": [],
-  "kernel_sources": []
+  "kernel_sources": ["harshilsrivastav/deepvoice-defender-prep"]
 }
