@@ -39,11 +39,18 @@ os.environ["DVD_OUTPUT_DIR"] = "/kaggle/working/models"
 os.makedirs("/kaggle/working/models", exist_ok=True)
 os.makedirs("/kaggle/working/results", exist_ok=True)
 
-# Wire the ASVspoof data: prefer an attached dataset, else the repo's own copy
+# Wire the ASVspoof data. Public mirror anishsarkar22/asvpoof-2019-dataset-la
+# keeps the official zip layout, so the real root is one level down (…/LA).
+# A future private upload (mrigankrana/asvspoof2019-la) has the corpus at the root.
 KAGGLE_DATA = None
-for root in ["/kaggle/input/asvspoof2019-la", "/kaggle/input/asvspoof-2019-la"]:
-    if os.path.isdir(root):
-        KAGGLE_DATA = root
+for root, sub in [
+    ("/kaggle/input/asvspoof2019-la", ""),                     # own upload (corpus at root)
+    ("/kaggle/input/asvpoof-2019-dataset-la", "/LA"),          # public mirror
+    ("/kaggle/input/asvspoof2019-la-1", "/LA"),                # alternate mirror naming
+]:
+    cand = os.path.join(root, sub) if sub else root
+    if os.path.isdir(os.path.join(cand, "ASVspoof2019_LA_cm_protocols")):
+        KAGGLE_DATA = cand
         break
 if KAGGLE_DATA:
     link = os.path.join(REPO, "data", "raw", "LA", "LA")
@@ -104,7 +111,14 @@ def stage_train(args):
 
 
 def stage_grid(args):
-    """Run every grid entry that has no state.json yet, within the time budget."""
+    """Run every grid entry that has no state.json yet, within the time budget.
+
+    If the processed artifacts (augmentation pool etc.) don't exist yet — e.g.
+    the prep session hasn't run or its output wasn't attached — run prep first;
+    it is idempotent and resumable."""
+    if not os.path.exists("data/processed/train_pool.npy"):
+        print("=== grid: processed artifacts missing, running prep first ===")
+        stage_prep(args)
     from src.train_kaggle import train_run
 
     for mode, seed in GRID_PRIORITY:
@@ -134,11 +148,23 @@ def stage_eval(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", choices=["prep", "train", "grid", "eval"])
+    parser.add_argument("stage", nargs="?", choices=["prep", "train", "grid", "eval"],
+                        default=None,
+                        help="default: grid on a GPU session, prep on CPU — so the same "
+                             "script works as both the prep kernel and the training kernel")
     parser.add_argument("--mode", default="full")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--time_budget_h", type=float, default=None)
     parser.add_argument("--bootstrap", action="store_true")
     args = parser.parse_args()
+    if args.stage is None:
+        gpus = []
+        try:
+            import tensorflow as tf
+            gpus = tf.config.list_physical_devices("GPU")
+        except Exception:
+            pass
+        args.stage = "grid" if gpus else "prep"
+        print(f"no stage given: GPU={bool(gpus)} -> stage={args.stage}")
     dict(prep=stage_prep, train=stage_train, grid=stage_grid, eval=stage_eval)[args.stage](args)

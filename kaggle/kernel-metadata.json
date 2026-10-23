@@ -7,7 +7,7 @@
   "is_private": "true",
   "enable_gpu": "true",
   "enable_internet": "true",
-  "dataset_sources": ["mrigankrana/asvspoof2019-la"],
+  "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la"],
   "competition_sources": [],
   "kernel_sources": []
 }
