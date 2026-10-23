@@ -185,15 +185,25 @@ def build_aug_pool(split, k=POOL_K, workers=8, start=0, end=None, seed=1234):
 
 # ------------------------------------------------------- clean-mel npz shards
 
+def _mel_direct(path):
+    return waveform_to_logmel(load_audio(path)).astype(np.float16)
+
+
 def build_clean_mel_shards(split, shard_size=5000, workers=8, start=0, end=None,
                            audio_dir=None, out_dir=None, cache_path=None):
-    """Precompute clean mels for a split (dev/eval/codec-matrix) into npz shards."""
-    cache_path = cache_path or waveform_cache_path(split)
+    """Precompute clean mels for a split (dev/eval/codec-matrix) into npz shards.
+
+    If `cache_path` is given, mels are computed from that waveform cache;
+    otherwise flacs are decoded directly (used for dev/eval to avoid keeping
+    a 9 GB waveform cache on disk — /kaggle/working has a ~20 GB cap)."""
+    direct_dir = audio_dir or CM_AUDIO_DIRS[split]
     ids, labels, attacks = get_split_ids(split)
     end = end or len(ids)
     out_dir = out_dir or shard_dir(split)
     os.makedirs(out_dir, exist_ok=True)
-    jobs = [(i, cache_path) for i in range(start, end)]
+    jobs = [(i, cache_path) for i in range(start, end)] if cache_path else \
+           [os.path.join(direct_dir, f"{fid}.flac") for fid in ids[start:end]]
+    worker = _mel_from_cache if cache_path else _mel_direct
     shard_id = start // shard_size
     for chunk_start in range(start, end, shard_size):
         chunk_end = min(chunk_start + shard_size, end)
@@ -201,10 +211,13 @@ def build_clean_mel_shards(split, shard_size=5000, workers=8, start=0, end=None,
         if os.path.exists(shard_file):
             continue
         with Pool(workers) as p:
-            results = p.map(_mel_from_cache, [(i, cache_path) for i in range(chunk_start, chunk_end)], chunksize=8)
-        mels = np.zeros((chunk_end - chunk_start, 128, 128), dtype=np.float16)
-        for i, mel in results:
-            mels[i - chunk_start] = mel
+            if cache_path:
+                results = p.map(worker, [(i, cache_path) for i in range(chunk_start, chunk_end)], chunksize=8)
+                mels = np.zeros((chunk_end - chunk_start, 128, 128), dtype=np.float16)
+                for i, mel in results:
+                    mels[i - chunk_start] = mel
+            else:
+                mels = np.stack(p.map(worker, jobs[chunk_start - start:chunk_end - start], chunksize=8))
         np.savez_compressed(
             shard_file,
             mels=mels,

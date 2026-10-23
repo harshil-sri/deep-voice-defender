@@ -73,13 +73,14 @@ GRID_PRIORITY = [(m, s) for s in (42, 123, 456) for m in ("full", "none", "opus"
 
 
 def stage_prep(args):
+    """Disk-budgeted build order for /kaggle/working (~20 GB cap):
+    train waveforms (3.3G) -> train mels (0.8G) -> aug pool (6.7G) [peak 10.8G]
+    -> DELETE train waveforms -> dev shards (direct from flac) -> eval shards."""
     from src.dataset import build_waveforms, build_original_mels, build_aug_pool, build_clean_mel_shards
 
-    for split in ("train", "dev", "eval"):
-        wfp = f"data/processed/{split}_waveforms.npy"
-        if not os.path.exists(wfp):
-            print(f"=== waveforms {split} ===")
-            build_waveforms(split, workers=4)
+    if not os.path.exists("data/processed/train_waveforms.npy"):
+        print("=== waveforms train ===")
+        build_waveforms("train", workers=4)
     if not os.path.exists("data/processed/train_mels.npy"):
         print("=== original train mels ===")
         build_original_mels("train", workers=4)
@@ -89,17 +90,15 @@ def stage_prep(args):
     if not os.path.exists("data/processed/mel_stats.npz"):
         print("=== global mel stats ===")
         subprocess.run([sys.executable, "scripts/compute_global_stats.py"], check=True)
+    # train waveforms are only needed to build the pool — free the 3.3 GB
+    if os.path.exists("data/processed/train_pool.npy"):
+        os.remove("data/processed/train_waveforms.npy")
+        print("removed intermediate train_waveforms.npy")
     for split in ("dev", "eval"):
         shard = f"data/processed/{split}_mel_shards"
         if not (os.path.isdir(shard) and os.listdir(shard)):
-            print(f"=== clean mel shards {split} ===")
+            print(f"=== clean mel shards {split} (direct from flac) ===")
             build_clean_mel_shards(split, workers=4)
-        # waveform caches are only intermediates — dev+eval are ~12.5 GB, and
-        # /kaggle/working has a 20 GB output limit
-        wfp = f"data/processed/{split}_waveforms.npy"
-        if os.path.exists(wfp):
-            os.remove(wfp)
-            print(f"removed intermediate {wfp}")
     print("PREP DONE — promote /kaggle/working/repo/data/processed to a Kaggle "
           "dataset (dvd-processed) and attach it to the training kernels")
 
