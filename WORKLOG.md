@@ -12,7 +12,23 @@
 
 ---
 
-## Current status — PREP KERNEL RUNNING on harshilsrivastav (CPU); GPU training blocked on auth, see below
+## Current status — PREP RUNNING (harshilsrivastav, CPU); mrigankrana access token VERIFIED; waiting on prep to start GPU grid
+
+### Auth resolution (final, 2026-10-23 night) — how to run kaggle as mrigankrana
+- New-style **access token** for mrigankrana saved at `~/.kaggle-accounts/mrigankrana/access_token` (VERIFIED: `config view` introspects to mrigankrana, auth_method ACCESS_TOKEN).
+- CLI lookup order for tokens: `KAGGLE_API_TOKEN` env (a file path works!) → `$HOME/.kaggle/access_token`. **KAGGLE_CONFIG_DIR is never used for tokens.**
+- `scripts/kaggle_push.py --kaggle_json ~/.kaggle-accounts/mrigankrana/kaggle.json` now exports KAGGLE_API_TOKEN + isolated HOME automatically. Manual commands:
+  `KAGGLE_API_TOKEN=~/.kaggle-accounts/mrigankrana/access_token HOME=~/.kaggle-accounts/mrigankrana/.isolated_home KAGGLE_CONFIG_DIR=~/.kaggle-accounts/mrigankrana kaggle ...`
+- Legacy kaggle.json keys CANNOT upload (datasets/kernels) — reads only.
+- harshilsrivastav: GPU quota exhausted this week (CPU fine, prep running). GPU quota resets weekly.
+
+### Sequence to start training (in order)
+1. `kaggle kernels status harshilsrivastav/deepvoice-defender-prep` → wait for COMPLETE (~3–4 h from ~21:35 local).
+2. In browser as **harshilsrivastav**: open the prep kernel → Output → create dataset from `repo/data/processed` → name it **dvd-processed**.
+3. Edit `kaggle/kernel-metadata.json`: dataset_sources = ["anishsarkar22/asvpoof-2019-dataset-la", "harshilsrivastav/dvd-processed"].
+4. Push GPU training kernel (grid auto-runs): `python scripts/kaggle_push.py kernel --kaggle_json ~/.kaggle-accounts/mrigankrana/kaggle.json --kernel_dir kaggle`
+5. Monitor: `KAGGLE_API_TOKEN=~/.kaggle-accounts/mrigankrana/access_token HOME=~/.kaggle-accounts/mrigankrana/.isolated_home KAGGLE_CONFIG_DIR=~/.kaggle-accounts/mrigankrana kaggle kernels status mrigankrana/deepvoice-defender-training`
+6. Each finished session: download /kaggle/working output (models + state), re-commit the kernel to continue the grid.
 
 ### Kaggle auth findings (2026-10-23 evening) — IMPORTANT
 - mrigankrana's **legacy kaggle.json key** authenticates fine for READS (`datasets list/files`, `kernels status`) but the CLI (2.2.x) **rejects it for all UPLOADS** (datasets create, kernels push) — requires OAuth or a new-style access token.
