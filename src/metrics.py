@@ -47,6 +47,12 @@ def compute_eer(scores_pos, scores_neg):
     Uses the interpolation-on-ROC approach: find threshold where miss == fa.
     Returns (eer, threshold_at_eer).
     """
+    scores_pos = np.asarray(scores_pos, dtype=np.float64)
+    scores_neg = np.asarray(scores_neg, dtype=np.float64)
+    if len(scores_pos) == 0 or len(scores_neg) == 0:
+        raise ValueError(
+            f"EER needs both classes: got {len(scores_pos)} bonafide, {len(scores_neg)} spoof"
+        )
     all_scores = np.concatenate([scores_pos, scores_neg])
     thresholds = np.unique(all_scores)
     # Candidate thresholds strictly between classes; add -inf/+inf edges.

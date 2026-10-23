@@ -20,19 +20,28 @@ KERNEL_SLUG = "deepvoice-defender-training"
 
 
 def _kaggle_env(kaggle_json):
-    """Run kaggle CLI with a specific token file."""
+    """Run kaggle CLI with a specific token file.
+
+    Two quirks of the kaggle CLI (2.2.x) are handled here:
+    - KAGGLE_CONFIG_DIR is ignored when an `access_token` exists in the DEFAULT
+      ~/.kaggle — so HOME is also pointed at an isolated directory.
+    - if the token file is not literally named kaggle.json, we copy it.
+    """
     env = dict(os.environ)
     if kaggle_json:
         kaggle_json = os.path.abspath(kaggle_json)
-        os.environ.setdefault("KAGGLE_CONFIG_DIR", os.path.dirname(kaggle_json))
-        env["KAGGLE_CONFIG_DIR"] = os.path.dirname(kaggle_json)
+        config_dir = os.path.dirname(kaggle_json)
+        env["KAGGLE_CONFIG_DIR"] = config_dir
         if os.path.basename(kaggle_json) != "kaggle.json":
-            os.makedirs(os.path.dirname(kaggle_json), exist_ok=True)
-            tgt = os.path.join(os.path.dirname(kaggle_json), "kaggle.json")
+            os.makedirs(config_dir, exist_ok=True)
+            tgt = os.path.join(config_dir, "kaggle.json")
             if not os.path.exists(tgt):
                 import shutil
 
                 shutil.copy(kaggle_json, tgt)
+        isolated_home = os.path.join(config_dir, ".isolated_home")
+        os.makedirs(isolated_home, exist_ok=True)
+        env["HOME"] = isolated_home
     return env
 
 

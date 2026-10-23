@@ -260,6 +260,18 @@ def _make_fetch(mode, split="train"):
     stats = load_mel_stats()
     mean, std = stats if stats is not None else (0.0, 1.0)
     rng = np.random.default_rng(0)
+    warned = set()
+
+    def _pick(i, want):
+        cand = np.where(pool_modes[i] == want)[0]
+        if len(cand) == 0:
+            # pool gap (e.g. partial build) — fall back to the original mel
+            if want not in warned:
+                print(f"[dataset] WARNING: no '{want}' pool entries for row {i}; "
+                      "falling back to original mel (pool build incomplete?)", flush=True)
+                warned.add(want)
+            return np.asarray(orig[i])
+        return np.asarray(pool[i, cand[rng.integers(len(cand))]])
 
     def fetch(idx):
         i = int(idx)
@@ -267,19 +279,10 @@ def _make_fetch(mode, split="train"):
             if mode == "none":
                 m = np.asarray(orig[i])
             elif mode in ("noise", "resample", "opus"):
-                want = mode
-                cand = np.where(pool_modes[i] == want)[0]
-                j = cand[rng.integers(len(cand))]
-                m = np.asarray(pool[i, j])
+                m = _pick(i, mode)
             elif mode == "full":
                 u = rng.random()
-                if u < 0.5:
-                    m = np.asarray(orig[i])
-                else:
-                    want = "opus" if u < 0.75 else "noise"
-                    cand = np.where(pool_modes[i] == want)[0]
-                    j = cand[rng.integers(len(cand))]
-                    m = np.asarray(pool[i, j])
+                m = np.asarray(orig[i]) if u < 0.5 else _pick(i, "opus" if u < 0.75 else "noise")
             else:
                 raise ValueError(mode)
         m = m.astype(np.float32)
