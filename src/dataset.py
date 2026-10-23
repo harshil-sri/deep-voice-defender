@@ -90,12 +90,12 @@ def build_waveforms(split, workers=8, start=0, end=None, audio_dir=None, out_pat
     end = end or len(ids)
     os.makedirs(PROCESSED, exist_ok=True)
     arr = np.lib.format.open_memmap(
-        out_path, mode="w+" if start == 0 and end == len(ids) else "r+",
+        out_path, mode="r+" if os.path.exists(out_path) else "w+",
         dtype=np.float16, shape=(len(ids), AUDIO_LEN),
     )
     jobs = [(i, os.path.join(audio_dir, f"{fid}.flac")) for i, fid in enumerate(ids) if start <= i < end]
     with Pool(workers) as p:
-        for n, (i, wav) in enumerate(p.imap(_decode_one, [j[1] for j in jobs], chunksize=16)):
+        for n, wav in enumerate(p.imap(_decode_one, [j[1] for j in jobs], chunksize=16)):
             arr[jobs[n][0]] = wav
             if (n + 1) % 1000 == 0:
                 print(f"  waveforms {n + 1}/{len(jobs)}", flush=True)
@@ -115,7 +115,7 @@ def build_original_mels(split, workers=8, start=0, end=None, cache_path=None):
     ids, _, _ = get_split_ids(split)
     end = end or len(ids)
     arr = np.lib.format.open_memmap(
-        mels_path(split), mode="w+" if start == 0 and end == len(ids) else "r+",
+        mels_path(split), mode="r+" if os.path.exists(mels_path(split)) else "w+",
         dtype=np.float16, shape=(len(ids), 128, 128),
     )
     jobs = [(i, cache_path) for i in range(start, end)]
@@ -162,7 +162,7 @@ def build_aug_pool(split, k=POOL_K, workers=8, start=0, end=None, seed=1234):
     end = end or len(ids)
     assert k == _OPUS_COUNT + _RESAMPLE_COUNT + _NOISE_COUNT, "k must match pool layout"
     arr = np.lib.format.open_memmap(
-        pool_path(split), mode="w+" if start == 0 and end == len(ids) else "r+",
+        pool_path(split), mode="r+" if os.path.exists(pool_path(split)) else "w+",
         dtype=np.float16, shape=(len(ids), k, 128, 128),
     )
     meta_file = os.path.join(PROCESSED, f"{split}_pool_meta.npz")

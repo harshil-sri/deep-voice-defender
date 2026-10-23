@@ -44,6 +44,8 @@ def main(sample_n=5000, workers=8, seed=0):
             sample = np.stack(p.map(_mel_one, paths, chunksize=8))
         print(f"decoded+mel'd {len(paths)} train files")
 
+    # float32: accumulating over ~10^8 float16 elements overflows float16
+    sample = sample.astype(np.float32)
     mean = float(np.mean(sample))
     std = float(np.std(sample))
     np.savez(out, mean=mean, std=std, n=int(sample.shape[0]))

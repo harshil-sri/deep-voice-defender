@@ -46,11 +46,16 @@ def pad_or_trim(waveform, target_len=AUDIO_LEN):
 
 
 def waveform_to_logmel(waveform):
-    """Raw (unnormalized) log-mel spectrogram, shape (128, 128)."""
+    """Raw (unnormalized) log-mel spectrogram, shape (128, 128).
+
+    top_db=80 clamps the dynamic range (silent frames would otherwise give
+    -inf when the utterance max is ~0), and the final nan_to_num guarantees
+    finite values even for all-silent audio."""
     mel = librosa.feature.melspectrogram(
         y=waveform, sr=SAMPLE_RATE, n_fft=N_FFT, hop_length=HOP_LENGTH, n_mels=N_MELS
     )
-    return librosa.power_to_db(mel, ref=np.max).astype(np.float32)
+    logmel = librosa.power_to_db(mel, ref=np.max, top_db=80.0)
+    return np.nan_to_num(logmel, nan=-80.0, posinf=-80.0, neginf=-80.0).astype(np.float32)
 
 
 def load_mel_stats(stats_path=MEL_STATS_PATH):
