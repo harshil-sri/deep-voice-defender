@@ -12,7 +12,33 @@
 
 ---
 
-## Current status — PREP RUNNING (harshilsrivastav, CPU); mrigankrana access token VERIFIED; waiting on prep to start GPU grid
+## Current status — AUTONOMOUS PIPELINE ARMED (cron automation polls every 30 min); prep still RUNNING
+
+### Automation (created 2026-10-23 late night) — how the pipeline runs itself
+- A ZCode cron automation (every 30 min) drives everything: when prep completes it
+  creates the `dvd-processed` dataset **via CLI** (download kernel output → restructure
+  to `processed/` at root → `kaggle datasets create`, ~10 GB round trip through local
+  disk, ~697 GB free), then pushes the GPU training kernel under mrigankrana, then on
+  every poll: monitors the session, downloads finished output, uploads it as a new
+  version of **`harshilsrivastav/dvd-grid-state`** (placeholder created, status `ready`),
+  and re-pushes the kernel to continue the grid until all 15 runs + clean eval are done.
+- Kernel script changes enabling this (committed): deep processed wiring
+  (`/kaggle/input/*/repo/data/processed` etc.), seeds `/kaggle/working/{models,results}`
+  from the grid-state dataset, grid now runs unfinished runs only (epoch-cap/patience
+  check via `run_finished()`), 8.5 h clean time budget, and auto-stage: GPU session with
+  all 15 runs finished → runs the clean dev+eval sweep automatically.
+- User already made the prep kernel PUBLIC (helps: CLI can fetch its output without
+  owner-only auth). If the user happens to click "New Dataset" in the Output tab first,
+  the automation detects `dvd-processed` exists and skips its own creation (nested
+  `repo/data/processed` layout is handled by the deep wiring).
+- `kaggle/kernel-metadata.json` dataset_sources now: `anishsarkar22/asvpoof-2019-dataset-la`,
+  `harshilsrivastav/dvd-processed`, `harshilsrivastav/dvd-grid-state`.
+- Push command (mrigankrana): `python scripts/kaggle_push.py kernel --kaggle_json ~/.kaggle-accounts/mrigankrana/kaggle.json --kernel_dir kaggle`
+- Progress readouts: `kaggle kernels status harshilsrivastav/deepvoice-defender-prep` /
+  `kaggle kernels status mrigankrana/deepvoice-defender-training` (as mrigankrana env, see below);
+  run-to-run progress in WORKLOG "grid progress" section below (automation appends).
+
+## Previous status — PREP RUNNING (harshilsrivastav, CPU); mrigankrana access token VERIFIED; waiting on prep to start GPU grid
 
 ### Auth resolution (final, 2026-10-23 night) — how to run kaggle as mrigankrana
 - New-style **access token** for mrigankrana saved at `~/.kaggle-accounts/mrigankrana/access_token` (VERIFIED: `config view` introspects to mrigankrana, auth_method ACCESS_TOKEN).

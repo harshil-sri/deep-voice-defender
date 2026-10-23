@@ -59,17 +59,43 @@ if KAGGLE_DATA:
         os.symlink(KAGGLE_DATA, link)
     print(f"data -> {KAGGLE_DATA}")
 
-# Wire precomputed processed artifacts (from the prep run's promoted output)
-for root in os.listdir("/kaggle/input"):
-    proc = os.path.join("/kaggle/input", root, "processed")
-    if os.path.isdir(proc):
-        link = os.path.join(REPO, "data", "processed")
-        if not os.path.exists(link):
-            os.symlink(proc, link)
-        print(f"processed -> {proc}")
-        break
+# Wire precomputed processed artifacts (from the prep run's promoted output).
+# The dataset may nest them at any depth (repo/data/processed if created from
+# the kernel Output tab, processed/ if created from a restructured download).
+import glob as _glob
 
 GRID_PRIORITY = [(m, s) for s in (42, 123, 456) for m in ("full", "none", "opus", "resample", "noise")]
+
+EPOCHS_DEFAULT = 60
+PATIENCE_DEFAULT = 10
+
+for pat in ("/kaggle/input/*/processed", "/kaggle/input/*/data/processed",
+            "/kaggle/input/*/repo/data/processed"):
+    hit = sorted(_glob.glob(pat))
+    if hit:
+        link = os.path.join(REPO, "data", "processed")
+        if not os.path.exists(link):
+            os.symlink(hit[0], link)
+        print(f"processed -> {hit[0]}")
+        break
+
+# Seed models/results from previous sessions (dvd-grid-state dataset) so the
+# grid and eval stages see everything that finished before this session.
+for src in sorted(_glob.glob("/kaggle/input/*/models")) + sorted(_glob.glob("/kaggle/input/*/results")):
+    dst = os.path.join("/kaggle/working", os.path.basename(src))
+    subprocess.run(["cp", "-rn", src + "/.", dst], check=False)
+    print(f"seeded {dst} <- {src}")
+
+
+def run_finished(run_dir, epochs=EPOCHS_DEFAULT, patience=PATIENCE_DEFAULT):
+    """A run is done when it hit the epoch cap or early-stopped on patience."""
+    import json
+    sp = os.path.join(run_dir, "state.json")
+    if not os.path.exists(sp):
+        return False
+    with open(sp) as f:
+        st = json.load(f)
+    return st["last_epoch"] >= epochs - 1 or st["last_epoch"] - st["best_epoch"] >= patience
 
 
 def stage_prep(args):
@@ -120,12 +146,14 @@ def stage_grid(args):
         stage_prep(args)
     from src.train_kaggle import train_run
 
+    # stop cleanly before Kaggle kills the session (~9-12 h GPU cap)
+    budget = args.time_budget_h if args.time_budget_h is not None else 8.5
     for mode, seed in GRID_PRIORITY:
-        state = os.path.join("/kaggle/working/models", f"dvd_{mode}_seed{seed}", "state.json")
-        if os.path.exists(state):
+        run_dir = os.path.join("/kaggle/working/models", f"dvd_{mode}_seed{seed}")
+        if run_finished(run_dir, epochs=args.epochs):
             continue
         print(f"=== grid: {mode} seed {seed} ===")
-        train_run(mode, seed, epochs=args.epochs, time_budget_h=args.time_budget_h)
+        train_run(mode, seed, epochs=args.epochs, time_budget_h=budget)
     print("GRID STAGE COMPLETE (or time budget reached — re-commit to continue)")
 
 
@@ -165,5 +193,11 @@ if __name__ == "__main__":
         except Exception:
             pass
         args.stage = "grid" if gpus else "prep"
+        # all 15 runs finished -> this push becomes the clean eval sweep
+        if args.stage == "grid" and all(
+            run_finished(os.path.join("/kaggle/working/models", f"dvd_{m}_seed{s}"),
+                         epochs=args.epochs) for m, s in GRID_PRIORITY
+        ):
+            args.stage = "eval"
         print(f"no stage given: GPU={bool(gpus)} -> stage={args.stage}")
     dict(prep=stage_prep, train=stage_train, grid=stage_grid, eval=stage_eval)[args.stage](args)
