@@ -17,3 +17,8 @@ venv/
 # Ignore Large Models
 models/*.h5
 models/*.keras
+# Training artifacts (v2)
+logs/
+models/*
+!models/.gitkeep
+kaggle/working/
