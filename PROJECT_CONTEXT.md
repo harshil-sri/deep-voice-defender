@@ -1,264 +1,132 @@
-# Deep-Voice Defender - Project Context & Roadmap
+# Deep-Voice Defender — Project Context
 
-**Last Updated:** 2026-09-19  
-**Status:** Working end-to-end pipeline, zero evaluation, fake metrics in README  
-**Target:** Publishable research paper (Option A: 2-week plan)
-
----
-
-## 1. Current State of the Project
-
-### What Exists (Working Code)
-
-| File | Lines | Description | Verified |
-|------|-------|-------------|----------|
-| `app.py` | 220 | Streamlit UI — loads model, plots spectrogram, predicts spoof/bonafide | ✅ Runs |
-| `src/preprocessing.py` | 40 | `load_audio()` (resample 16kHz, pad/trim to 4s), `audio_to_mel()` (128 mel bins, min-max normalized) | ✅ Runs |
-| `src/augmentation.py` | 26 | `simulate_opus()` (16k→8k→16k resample), `add_noise()` (Gaussian, 0.005 factor), `augment_audio()` (50% none, 25% OPUS, 25% noise) | ✅ Runs |
-| `src/model.py` | 47 | 3× Conv2D blocks (32→64→128 filters) + BatchNorm + MaxPool + Dropout → Flatten → Dense(128) → Dense(1, sigmoid) | ✅ Runs |
-| `src/train.py` | 160 | `AudioDataGenerator` (Keras `Sequence`), class weights {0:1, 1:9}, EarlyStopping + ReduceLROnPlateau, 40 epochs | ✅ Runs |
-| `src/predict.py` | 46 | CLI inference — loads `.keras`, runs same preprocessing, prints verdict | ✅ Runs |
-| `deep_voice_defender_v1.keras` | ~3MB | Pre-trained model file | ✅ Exists |
-| `requirements.txt` | 18 | TensorFlow[CUDA], librosa, streamlit, etc. | ✅ Installs |
-| `data/raw/` | — | ASVspoof 2019 LA dataset (train + eval + protocols) | ✅ Downloaded |
-
-### What Does NOT Exist (Critical Gaps)
-
-| Missing Component | Why It Matters |
-|-------------------|----------------|
-| **Evaluation script** | No way to compute EER, min t-DCF, accuracy, AUC on eval set |
-| **Real metrics** | README claims "99% accuracy" and "Works on WhatsApp" — zero evidence |
-| **Ablation study** | Cannot isolate contribution of OPUS vs. noise vs. none |
-| **Baseline comparison** | No vanilla CNN (no augmentation) to compare against |
-| **Training logs/curves** | No TensorBoard, no loss/accuracy plots saved |
-| **Cross-corpus test** | Never tested on actual WhatsApp-compressed audio |
-| **Statistical rigor** | Single seed, no confidence intervals, no multiple runs |
-
-### The "Fake Numbers" Problem
-
-**README.md currently claims:**
-- "99% accuracy on clean data" → **Unverified, no evaluation code exists**
-- "Works on WhatsApp" → **Simulates OPUS in training, but never tested on real WhatsApp audio**
-- Comparison table (Standard vs. Defender) → **Purely aspirational, no experimental data**
-
-**Graphify analysis confirmed:** 27% of graph edges are INFERRED (not extracted from code). The inferred edges (main→load_audio, predict_suspect→audio_to_mel, etc.) are **actually correct** — the code does call them. But the performance claims are fabricated.
+**Last Updated:** 2026-10-23
+**Status:** v2 research infrastructure COMPLETE (not yet trained). Paper-grade rewrite in progress.
+**Read next:** `WORKLOG.md` (handoff log — most recent state), `paper/PLAN.md` (claims → experiments map).
 
 ---
 
-## 2. What Option A Is
+## 1. What this project is now
 
-**Option A = Real Research Paper (2 weeks)**
+DeepVoice Defender started as a college mini-project: a 3-block CNN on 128×128
+log-mel spectrograms detecting audio deepfake speech (bonafide vs spoof) on
+ASVspoof 2019 LA. v1 achieved EER 11.95% / accuracy 87.14% on the eval set
+(its old "99%" README claim and its min t-DCF 0.0100 were invalid — the t-DCF
+was computed without the required ASV scores).
 
-A complete, honest, reproducible experimental paper with:
-1. **Real evaluation** on ASVspoof 2019 LA eval set (EER, min t-DCF, AUC, accuracy)
-2. **Ablation study** — 4 training runs: (a) no augmentation, (b) OPUS only, (c) noise only, (d) full
-3. **Baseline comparison** — vanilla CNN vs. Defender CNN
-4. **Cross-corpus validation** — test on real WhatsApp/Telegram compressed audio
-5. **Statistical rigor** — 3 seeds, confidence intervals, training curves
-6. **Written paper** — 6-8 pages: Introduction, Related Work, Method, Experiments, Results, Conclusion
+The project is being upgraded into a conference-grade **empirical study**:
 
-**Target venue:** College research journal / conference (BTEC level)  
-**Deliverable:** PDF + GitHub repo with reproducible code + trained models
+> *"How much does codec-aware augmentation help lightweight audio deepfake
+> detection? An empirical study on codec-degraded and telecom speech."*
 
----
+User-approved scope (2026-10-23):
+- **Core grid + S1 = 15 training runs:** 5 augmentation modes × 3 seeds:
+  - `none`, `noise` (SNR 5–20 dB), `opus` (**true libopus** via ffmpeg),
+    `resample` (naive 16k→8k→16k — v1's fake "opus", kept for the S1
+    head-to-head), `full` (50% none / 25% opus / 25% noise). Seeds 42/123/456.
+- **Global-stat normalization** (per-utterance min-max retired).
+- **No WhatsApp mini-set**; cross-corpus = ASVspoof 2021 LA eval + a local
+  codec-re-encode matrix on 2019 eval/dev.
+- **All training on Kaggle** (30 GPU-h/wk/account) or Colab. Never train locally
+  (local TF is broken: protobuf gencode/runtime mismatch; and the 4060 is off-limits).
 
-## 3. How We Continue (Workflow)
-
-### Phase 1: Evaluation Infrastructure (Days 1-2)
-```
-Create src/evaluate.py
-    ↓
-Run on ASVspoof 2019 LA eval set (already in data/raw/)
-    ↓
-Get: EER, min t-DCF, AUC, accuracy, ROC/DET curves
-    ↓
-Save results to results/eval_baseline.json
-```
-
-### Phase 2: Ablation Training (Days 3-7)
-```
-Modify train.py to accept --augmentation_mode flag
-    ↓
-Train 4 variants (3 seeds each = 12 runs):
-  1. none      — no augmentation
-  2. opus_only — simulate_opus only
-  3. noise_only — add_noise only
-  4. full      — current augment_audio (50/25/25)
-    ↓
-Evaluate all 12 models on eval set
-    ↓
-Statistical comparison (mean ± std EER)
-```
-
-### Phase 3: Cross-Corpus Test (Days 8-9)
-```
-Collect 50+ real WhatsApp voice notes (bonafide + spoof)
-    ↓
-Create src/test_whatsapp.py
-    ↓
-Run all 4 model variants on WhatsApp test set
-    ↓
-Report degradation vs. clean eval
-```
-
-### Phase 4: Paper Writing (Days 10-14)
-```
-Generate all tables/figures from results/
-    ↓
-Write paper in Overleaf/LaTeX or Markdown→PDF
-    ↓
-Sections: Abstract, Intro, Related Work, Method, Experiments, Results, Discussion, Conclusion
-    ↓
-Push final code + models + paper to GitHub
-```
-
----
-
-## 4. Detailed To-Do List
-
-### ✅ Already Done (Foundation)
-- [x] End-to-end pipeline works (train → model → predict → Streamlit)
-- [x] ASVspoof 2019 LA dataset downloaded
-- [x] Pre-trained model exists (`deep_voice_defender_v1.keras`)
-- [x] GPU environment configured (train.py auto-configures LD_LIBRARY_PATH)
-
-### 🔧 Phase 1: Evaluation (Days 1-2)
-- [ ] **Create `src/evaluate.py`** — load model, iterate eval protocol, compute EER/min_tDCF/AUC/acc
-- [ ] **Add ROC/DET curve plotting** — save to `results/figures/roc.png`, `det.png`
-- [ ] **Add confusion matrix** — save to `results/figures/cm.png`
-- [ ] **Run baseline evaluation** — current `deep_voice_defender_v1.keras` on eval set
-- [ ] **Save metrics** — `results/eval_full_model.json`
-- [ ] **Verify "99% accuracy" claim** — replace with real numbers in README
-
-### 🔧 Phase 2: Ablation Study (Days 3-7)
-- [ ] **Modify `src/augmentation.py`** — add `mode` parameter: `none`, `opus`, `noise`, `full`
-- [ ] **Modify `src/train.py`** — accept `--aug_mode` CLI arg, pass to generator
-- [ ] **Create `scripts/run_ablation.sh`** — loop over 4 modes × 3 seeds = 12 trainings
-- [ ] **Run 12 trainings** — each saves `deep_voice_defender_{mode}_seed{}.keras`
-- [ ] **Evaluate all 12 models** — `results/ablation/raw_scores.csv`
-- [ ] **Compute statistics** — mean ± std EER per mode, significance tests
-- [ ] **Generate ablation table** — `results/tables/ablation.tex`
-
-### 🔧 Phase 3: Cross-Corpus (Days 8-9)
-- [ ] **Collect WhatsApp test set** — 25 bonafide + 25 spoof voice notes (record/collect)
-- [ ] **Create `src/test_cross_corpus.py`** — evaluate all 4 best models on WhatsApp set
-- [ ] **Report relative degradation** — (EER_whatsapp - EER_clean) / EER_clean
-- [ ] **Save results** — `results/cross_corpus.json`
-
-### 🔧 Phase 4: Paper & Polish (Days 10-14)
-- [ ] **Training curves** — add TensorBoard callback, export loss/acc/AUC plots
-- [ ] **Model complexity table** — params, MACs, inference latency (CPU/GPU)
-- [ ] **Write paper** — `paper/main.tex` or `paper/main.md`
-- [ ] **Create reproducibility README** — exact commands to reproduce all results
-- [ ] **Push to GitHub** — clean repo with `results/`, `paper/`, trained models
-
----
-
-## 5. Key Technical Decisions (Don't Re-Debate)
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **Eval metric** | EER + min t-DCF | ASVspoof 2019 LA standard |
-| **Ablation modes** | 4 (none, opus, noise, full) | Isolates each component |
-| **Seeds** | 3 (42, 123, 456) | Balance rigor vs. compute time |
-| **Class weights** | Keep {0:1, 1:9} | ASVspoof LA is 9:1 bonafide:spoof |
-| **Input shape** | (128, 128, 1) | Fixed by preprocessing (4s @ 16kHz → 128×128) |
-| **Framework** | TensorFlow/Keras | Already used, model exists |
-| **Paper format** | LaTeX (Overleaf) | Standard for research |
-
----
-
-## 6. File Structure After Completion
+## 2. Architecture of the v2 pipeline
 
 ```
-Deep-Voice-Defender/
-├── app.py                          # Streamlit UI (unchanged)
-├── requirements.txt
-├── README.md                       # Updated with REAL results
-├── PROJECT_CONTEXT.md              # This file
-├── src/
-│   ├── __init__.py
-│   ├── preprocessing.py            # Unchanged
-│   ├── augmentation.py             # + mode parameter
-│   ├── model.py                    # Unchanged
-│   ├── train.py                    # + --aug_mode CLI
-│   ├── predict.py                  # Unchanged
-│   ├── evaluate.py                 # NEW
-│   └── test_cross_corpus.py        # NEW
-├── scripts/
-│   └── run_ablation.sh             # NEW
-├── data/
-│   └── raw/                        # ASVspoof 2019 LA (unchanged)
-├── results/
-│   ├── eval_full_model.json
-│   ├── ablation/
-│   │   ├── raw_scores.csv
-│   │   └── stats_summary.json
-│   ├── cross_corpus.json
-│   ├── figures/
-│   │   ├── roc.png
-│   │   ├── det.png
-│   │   ├── cm.png
-│   │   └── training_curves/
-│   └── tables/
-│       └── ablation.tex
-├── paper/
-│   ├── main.tex
-│   ├── references.bib
-│   └── figures/                    # Copied from results/figures
-└── models/
-    ├── deep_voice_defender_v1.keras           # Original
-    ├── deep_voice_defender_none_seed42.keras
-    ├── deep_voice_defender_opus_seed42.keras
-    ├── deep_voice_defender_noise_seed42.keras
-    └── deep_voice_defender_full_seed42.keras
-    ... (12 total)
+ASVspoof 2019 LA flac
+  │  src/dataset.py build-waveforms   (float16 memmap, 65024 smp ≈ 4.065 s)
+  ▼
+waveform caches ──► src/dataset.py build-pool ──► STATIC AUGMENTATION POOL
+                  build-mels                     train_pool.npy float16 (N,8,128,128)
+                  scripts/compute_global_stats   3 opus + 2 resample + 3 noise mels/file
+                                                 (true-opus is ~100 ms/utt via ffmpeg,
+                                                  too slow on-the-fly → static pool)
+  ▼
+src/train_kaggle.py   tf.data ← pool lookups only; per-epoch ckpt; resume-safe;
+                      model selection on DEV EER; time-budgeted clean stops
+  ▼
+models/dvd_{mode}_seed{seed}/best.keras + log.csv + state.json
+  ▼
+src/evaluate.py       → results/scores/{run}__{split}__{condition}.csv (raw scores!)
+                        results/eval/{run}__{split}__{condition}.json
+  ▼
+scripts/stats.py      → results/tables/{ablation,codec_matrix,per_attack}.tex
+scripts/make_figures.py, scripts/efficiency.py → figures + efficiency table
 ```
 
----
+Key implementation facts (verified by tests/sanity_check.py):
+- Waveform length **65024** samples → mel (128 mels, hop 512, n_fft 1024) is
+  **exactly (128,128)**; model input (128,128,1).
+- **Official min t-DCF** implemented in `src/metrics.py` from the ASVspoof 2019
+  evaluation plan (pp. 8–10): t-DCF = C1·P_miss + C2·P_fa, normalized by
+  min(C1,C2), ASV at its own EER point on target-vs-nontarget, using the
+  provided ASV scores in `data/raw/LA/LA/ASVspoof2019_LA_asv_scores/`. The
+  v1 number (0.0100) is invalid and must never be quoted.
+- True codec simulation in `src/codec.py` (Opus/MP3/AAC/AMR-NB round-trips via
+  ffmpeg; binary from `$FFMPEG_BIN` → PATH → imageio_ffmpeg).
+- `log-mel` uses `top_db=80` clamp (silent frames otherwise → −inf).
+- Any float16 reduction must cast to float32 first (np.std overflow bug found
+  in practice).
+- Score convention everywhere: **high = bonafide**, label 1 = bonafide.
 
-## 7. Commands Reference (For Agents)
+## 3. Run/eval protocol
 
-```bash
-# Setup
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+Grid priority (see GRID_PRIORITY in kaggle/deepvoice_training.py): all seed-42
+runs first, then 123, then 456 — a complete single-seed story exists early.
+Evaluation conditions: `clean` + 11 codec re-encodes of eval
+(opus 6/12/24/48k, mp3 16/32/64k, aac 16/32k, amr-nb 4.75/12.2k —
+`src/codec.CODEC_MATRIX`) + ASVspoof 2021 LA eval (cross-corpus).
 
-# Baseline evaluation (Phase 1)
-python src/evaluate.py
+Kaggle workflow (kaggle/deepvoice_training.py stages):
+1. `prep` (CPU session, ~3–4 h): waveform caches → mels → pool → stats → dev/eval
+   shards. Promote `/kaggle/working/repo/data/processed` to dataset `dvd-processed`.
+2. `grid` (GPU sessions, time-budgeted): trains remaining runs, resumable.
+3. `eval`: scores all finished models on dev+eval clean.
+Codec matrix + 2021 runs are follow-up sessions (scripts/build_codec_matrix.py
+is resumable; scripts/fetch_asvspoof2021.py downloads 2021 LA).
 
-# Ablation training (Phase 2)
-bash scripts/run_ablation.sh
+## 4. Current state / next actions
 
-# Cross-corpus test (Phase 3)
-python src/test_cross_corpus.py
+- [x] v2 pipeline built and smoke-tested locally (data path verified on real
+      ASVspoof files; metrics validated on synthetic data)
+- [ ] **User:** put a Kaggle token at ~/.kaggle/kaggle.json (multiple accounts
+      supported via scripts/kaggle_push.py --kaggle_json)
+- [ ] Upload data dataset (`python scripts/kaggle_push.py dataset`), push kernel,
+      run `prep` on a CPU session, run `grid` on GPU sessions
+- [ ] Evaluate + stats + figures; then 2021 LA cross-corpus
+- [ ] Paper: paper/main.tex skeleton exists; fill from generated tables
+      (paper/PLAN.md has the claims→tables map and writing checklist)
 
-# Paper compile
-cd paper && latexmk -pdf main.tex
+## 5. Hard-won constraints (don't re-litigate)
+
+| Decision | Choice | Why |
+|---|---|---|
+| Training hardware | Kaggle P100/T4 + Colab only | user's accounts; local TF broken; 4060 off-limits |
+| Augmentation delivery | static pool K=8 | true-opus ≈ 100 ms/utt → 45 min/epoch on-the-fly; pool → ~1–2 min/epoch |
+| Model selection | dev EER, patience 10 | ASVspoof protocol; v1's train-loss early stop was wrong |
+| Class weights | off (v1 recipe continuity) | one variable at a time; flag exists |
+| Mel normalization | global stats (train mean −0.898, std 7.91 dB) | min-max destroys level info |
+| min t-DCF | official implementation only | v1's 0.0100 was CM-only approximation |
+| Eval artifacts | raw scores CSVs are the source of truth | all analysis rebuildable from them |
+
+## 6. File map (v2 additions)
+
+```
+src/protocol.py        2019 protocol + ASV trial loaders
+src/metrics.py         EER, official min t-DCF, per-attack, bootstrap
+src/preprocessing.py   65024-sample mels, global-stat norm (legacy min-max kept for app.py)
+src/codec.py           true codec round-trips + CODEC_MATRIX conditions
+src/augmentation.py    5 modes, seeded
+src/dataset.py         caches/pool/shards + tf.data
+src/train_kaggle.py    resumable trainer, dev-EER selection
+src/evaluate.py        scores CSV + metrics JSON
+scripts/               stats, global-stats, codec-matrix, figures, efficiency, kaggle push, 2021 fetch
+kaggle/                kernel script + metadata
+colab/                 notebook
+paper/                 main.tex, references.bib, PLAN.md
+tests/sanity_check.py  no-TF sanity suite (run: python3 tests/sanity_check.py)
+WORKLOG.md             handoff log — read this first when resuming
 ```
 
----
-
-## 8. Success Criteria (Definition of Done)
-
-- [ ] **EER on ASVspoof LA eval** reported with 3-seed mean ± std for all 4 modes
-- [ ] **Ablation table** shows statistically significant improvement from full augmentation
-- [ ] **Cross-corpus results** show <20% relative EER degradation on WhatsApp audio
-- [ ] **Paper** compiles to PDF, all tables/figures auto-generated from results/
-- [ ] **README.md** updated with real numbers, no fake claims
-- [ ] **GitHub repo** public, reproducible, includes all trained models
-
----
-
-## 9. Notes for Future Agents
-
-1. **Don't rewrite working code** — preprocessing, model, train, predict, app all work. Only add evaluation/ablation.
-2. **ASVspoof protocol files** — train: `...cm.train.trn.txt`, eval: `...cm.eval.trl.txt`
-3. **Audio paths** — train: `data/raw/LA/LA/ASVspoof2019_LA_train/flac/`, eval: `..._eval/flac/`
-4. **Model input** — always (128, 128, 1) after `np.expand_dims(spec, 0)` and `np.expand_dims(..., -1)`
-5. **Score interpretation** — sigmoid output: >0.5 = bonafide (human), <0.5 = spoof (fake)
-6. **GPU memory** — batch_size=32 works on RTX 4060/5060 (8GB VRAM)
-
----
-
-**Next Action:** Start Phase 1 — create `src/evaluate.py` and run baseline evaluation.
+v1 files kept as-is: app.py, src/{model,fix_model,inference,predict}.py,
+src/train.py (legacy local trainer — do not use for the paper).
