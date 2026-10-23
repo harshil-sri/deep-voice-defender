@@ -16,12 +16,16 @@
 
 ### Automation (created 2026-10-23 late night) — how the pipeline runs itself
 - A ZCode cron automation (every 30 min) drives everything: when prep completes it
-  creates the `dvd-processed` dataset **via CLI** (download kernel output → restructure
-  to `processed/` at root → `kaggle datasets create`, ~10 GB round trip through local
-  disk, ~697 GB free), then pushes the GPU training kernel under mrigankrana, then on
-  every poll: monitors the session, downloads finished output, uploads it as a new
-  version of **`harshilsrivastav/dvd-grid-state`** (placeholder created, status `ready`),
-  and re-pushes the kernel to continue the grid until all 15 runs + clean eval are done.
+  creates the **`mrigankrana/dvd-processed`** dataset **via CLI** (download prep kernel
+  output → restructure to `processed/` at root → `kaggle datasets create` as mrigankrana,
+  ~10 GB round trip through local disk, ~697 GB free), then pushes the GPU training
+  kernel under mrigankrana, then on every poll: monitors the session, downloads finished
+  output, uploads it as a new version of **`mrigankrana/dvd-grid-state`**, and re-pushes
+  the kernel to continue the grid until all 15 runs + clean eval are done.
+- **Datasets live under mrigankrana (NOT harshilsrivastav)**: Kaggle only attaches a
+  dataset to a kernel if it is public or same-owner; CLI-created datasets are private,
+  so same-owner is the reliable route. (harshilsrivastav/dvd-grid-state exists as a
+  private placeholder — harmless leftover, ignored.)
 - Kernel script changes enabling this (committed): deep processed wiring
   (`/kaggle/input/*/repo/data/processed` etc.), seeds `/kaggle/working/{models,results}`
   from the grid-state dataset, grid now runs unfinished runs only (epoch-cap/patience
