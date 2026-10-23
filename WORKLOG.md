@@ -12,7 +12,16 @@
 
 ---
 
-## Current status — BUILD COMPLETE, WAITING ON KAGGLE SETUP
+## Current status — BUILD COMPLETE, mrigankrana TOKEN VERIFIED, READY TO UPLOAD
+
+### Kaggle auth (resolved 2026-10-23) — READ BEFORE RUNNING ANY KAGGLE COMMAND
+- Token for **mrigankrana** lives at `~/.kaggle-accounts/mrigankrana/kaggle.json` (legacy API key, VERIFIED: resolves via `kaggle config view` + authenticated `datasets list --mine`).
+- **QUIRK:** kaggle CLI 2.2.x IGNORES `KAGGLE_CONFIG_DIR` when `~/.kaggle/access_token` exists (Harshil's own tokens live there → commands silently run as harshilsrivastav). Env vars KAGGLE_USERNAME/KAGGLE_KEY do NOT override it; upgrading to 2.2.5 does not fix it.
+- **Fix applied:** `scripts/kaggle_push.py --kaggle_json ...` runs the CLI with an isolated HOME → correct account automatically.
+- **For manual kaggle commands as mrigankrana, ALWAYS prefix both vars:**
+  `HOME=/home/harshil/.kaggle-accounts/mrigankrana/.isolated_home KAGGLE_CONFIG_DIR=~/.kaggle-accounts/mrigankrana kaggle ...`
+- Local protobuf restored to 7.x after a kaggle-CLI upgrade downgraded it — **TF now imports locally (CPU)** and a micro end-to-end train (tf.data batch for all 5 modes → model step, 3.3M params → dev-EER path) was verified. Local GPU still unavailable (fine — Kaggle trains).
+- Dev protocol quirk: bonafide trials are the FIRST 2548 rows of the dev protocol, spoofs after — never slice dev into a single block and expect both classes (compute_eer now raises on empty classes instead of returning NaN).
 
 ### DONE (2026-10-23, all committed to git main)
 - **Metrics:** `src/metrics.py` implements OFFICIAL min t-DCF from the ASVspoof 2019 evaluation plan pp. 8–10 (read from `data/raw/asvspoof2019_evaluation_plan.pdf`). Uses provided ASV scores (`data/raw/LA/LA/ASVspoof2019_LA_asv_scores/ASVspoof2019.LA.asv.{dev,eval}.gi.trl.scores.txt`, line-aligned with ASV protocol in `..._asv_protocols/`). Validated: trivial CM → exactly 1.0, perfect CM → 0, bootstrap CIs. Plus EER, per-attack EER (`src/protocol.py` has loaders; protocol format `SPEAKER UTID - ATTACK LABEL`, ASV score lines `ATTACK KEY SCORE`).
