@@ -1,0 +1,13 @@
+{
+  "id": "YOUR_KAGGLE_USERNAME/deepvoice-defender-training",
+  "title": "DeepVoice Defender Training",
+  "code_file": "deepvoice_training.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["YOUR_KAGGLE_USERNAME/asvspoof2019-la"],
+  "competition_sources": [],
+  "kernel_sources": []
+}
