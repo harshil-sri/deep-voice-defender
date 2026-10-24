@@ -45,6 +45,12 @@ os.makedirs("/kaggle/working/results", exist_ok=True)
 # Mount names have drifted between sessions, so locate the corpus by its
 # unique protocols dir under any /kaggle/input mount instead of by name.
 print("kaggle inputs:", sorted(os.listdir("/kaggle/input")))
+for sub in sorted(os.listdir("/kaggle/input")):
+    sub_path = os.path.join("/kaggle/input", sub)
+    if os.path.isdir(sub_path):
+        for a in sorted(os.listdir(sub_path))[:30]:
+            a_path = os.path.join(sub_path, a)
+            print("  input/", sub, "/", a, "/", sorted(os.listdir(a_path))[:15] if os.path.isdir(a_path) else f"({os.path.getsize(a_path)} bytes)")
 KAGGLE_DATA = None
 for root, sub in [
     ("/kaggle/input/asvspoof2019-la", ""),                     # own upload (corpus at root)
@@ -55,14 +61,23 @@ for root, sub in [
     if os.path.isdir(os.path.join(cand, "ASVspoof2019_LA_cm_protocols")):
         KAGGLE_DATA = cand
         break
-else:
-    for pat in ("/kaggle/input/*/ASVspoof2019_LA_cm_protocols",
-                "/kaggle/input/*/*/ASVspoof2019_LA_cm_protocols",
-                "/kaggle/input/*/*/*/ASVspoof2019_LA_cm_protocols"):
-        hit = sorted(_glob.glob(pat))
-        if hit:
-            KAGGLE_DATA = os.path.dirname(hit[0])
-            break
+INPUT_ROOTS = ["/kaggle/input", "/kaggle/input/datasets"]
+
+
+def _input_globs(suffix):
+    """Glob a path suffix under every input root, 1 and 2 levels deep
+    (Kaggle mounts have been seen as <root>/<slug>/... and
+    <root>/<owner>/<slug>/...)."""
+    hits = []
+    for root in INPUT_ROOTS:
+        for depth in ("/*", "/*/*", "/*/*/*", "/*/*/*/*"):
+            hits.extend(_glob.glob(root + depth + suffix))
+    return sorted(hits)
+
+
+for hit in _input_globs("/ASVspoof2019_LA_cm_protocols") or []:
+    KAGGLE_DATA = os.path.dirname(hit)
+    break
 if KAGGLE_DATA:
     link = os.path.join(REPO, "data", "raw", "LA", "LA")
     os.makedirs(os.path.dirname(link), exist_ok=True)
@@ -82,9 +97,8 @@ GRID_PRIORITY = [(m, s) for s in (42, 123, 456) for m in ("full", "none", "opus"
 EPOCHS_DEFAULT = 60
 PATIENCE_DEFAULT = 10
 
-INPUT_ROOTS = ["/kaggle/input", "/kaggle/input/datasets"]
-for pat in ("/processed", "/data/processed", "/repo/data/processed"):
-    hit = sorted(sum((_glob.glob(root + "/*" + pat) for root in INPUT_ROOTS), []))
+for suffix in ("/processed", "/data/processed", "/repo/data/processed"):
+    hit = _input_globs(suffix)
     if hit:
         link = os.path.join(REPO, "data", "processed")
         if not os.path.exists(link):
@@ -94,8 +108,7 @@ for pat in ("/processed", "/data/processed", "/repo/data/processed"):
 
 # Seed models/results from previous sessions (dvd-grid-state dataset) so the
 # grid and eval stages see everything that finished before this session.
-for src in sorted(sum((_glob.glob(root + "/*" + sub) for root in INPUT_ROOTS
-                       for sub in ("/models", "/results")), [])):
+for src in _input_globs("/models") + _input_globs("/results"):
     dst = os.path.join("/kaggle/working", os.path.basename(src))
     subprocess.run(["cp", "-rn", src + "/.", dst], check=False)
     print(f"seeded {dst} <- {src}")
