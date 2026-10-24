@@ -19,6 +19,7 @@ Stages (run via the last cell / __main__):
 Artifacts land in /kaggle/working/models and /kaggle/working/results.
 """
 
+import glob as _glob
 import os
 import sys
 import subprocess
@@ -26,10 +27,10 @@ import argparse
 
 REPO = os.environ.get("DVD_REPO", "/kaggle/working/repo")
 if not os.path.isdir(REPO):
-    for cand in ["/kaggle/input/deepvoice-defender-code", "/kaggle/input/deep-voice-defender"]:
-        if os.path.isdir(cand):
-            subprocess.run(["cp", "-r", cand, REPO], check=False)
-            break
+    code_hits = sorted(c for root in ("/kaggle/input", "/kaggle/input/datasets")
+                       for c in _glob.glob(root + "/*deep*voice*") if os.path.isdir(c))
+    if code_hits:
+        subprocess.run(["cp", "-r", code_hits[0], REPO], check=False)
     else:
         subprocess.run(["git", "clone", "https://github.com/harshil-sri/deep-voice-defender.git", REPO], check=True)
 
@@ -40,8 +41,10 @@ os.makedirs("/kaggle/working/models", exist_ok=True)
 os.makedirs("/kaggle/working/results", exist_ok=True)
 
 # Wire the ASVspoof data. Public mirror anishsarkar22/asvpoof-2019-dataset-la
-# keeps the official zip layout, so the real root is one level down (…/LA).
-# A future private upload (mrigankrana/asvspoof2019-la) has the corpus at the root.
+# keeps the official zip layout, so the corpus is one level down (…/LA).
+# Mount names have drifted between sessions, so locate the corpus by its
+# unique protocols dir under any /kaggle/input mount instead of by name.
+print("kaggle inputs:", sorted(os.listdir("/kaggle/input")))
 KAGGLE_DATA = None
 for root, sub in [
     ("/kaggle/input/asvspoof2019-la", ""),                     # own upload (corpus at root)
@@ -52,26 +55,36 @@ for root, sub in [
     if os.path.isdir(os.path.join(cand, "ASVspoof2019_LA_cm_protocols")):
         KAGGLE_DATA = cand
         break
+else:
+    for pat in ("/kaggle/input/*/ASVspoof2019_LA_cm_protocols",
+                "/kaggle/input/*/*/ASVspoof2019_LA_cm_protocols",
+                "/kaggle/input/*/*/*/ASVspoof2019_LA_cm_protocols"):
+        hit = sorted(_glob.glob(pat))
+        if hit:
+            KAGGLE_DATA = os.path.dirname(hit[0])
+            break
 if KAGGLE_DATA:
     link = os.path.join(REPO, "data", "raw", "LA", "LA")
     os.makedirs(os.path.dirname(link), exist_ok=True)
     if not os.path.exists(link):
         os.symlink(KAGGLE_DATA, link)
     print(f"data -> {KAGGLE_DATA}")
+else:
+    sys.exit("FATAL: ASVspoof2019_LA_cm_protocols not found under /kaggle/input — "
+             "check the kaggle inputs list printed above")
 
 # Wire precomputed processed artifacts (from the prep run's promoted output).
 # The dataset may nest them at any depth (repo/data/processed if created from
 # the kernel Output tab, processed/ if created from a restructured download).
-import glob as _glob
 
 GRID_PRIORITY = [(m, s) for s in (42, 123, 456) for m in ("full", "none", "opus", "resample", "noise")]
 
 EPOCHS_DEFAULT = 60
 PATIENCE_DEFAULT = 10
 
-for pat in ("/kaggle/input/*/processed", "/kaggle/input/*/data/processed",
-            "/kaggle/input/*/repo/data/processed"):
-    hit = sorted(_glob.glob(pat))
+INPUT_ROOTS = ["/kaggle/input", "/kaggle/input/datasets"]
+for pat in ("/processed", "/data/processed", "/repo/data/processed"):
+    hit = sorted(sum((_glob.glob(root + "/*" + pat) for root in INPUT_ROOTS), []))
     if hit:
         link = os.path.join(REPO, "data", "processed")
         if not os.path.exists(link):
@@ -81,7 +94,8 @@ for pat in ("/kaggle/input/*/processed", "/kaggle/input/*/data/processed",
 
 # Seed models/results from previous sessions (dvd-grid-state dataset) so the
 # grid and eval stages see everything that finished before this session.
-for src in sorted(_glob.glob("/kaggle/input/*/models")) + sorted(_glob.glob("/kaggle/input/*/results")):
+for src in sorted(sum((_glob.glob(root + "/*" + sub) for root in INPUT_ROOTS
+                       for sub in ("/models", "/results")), [])):
     dst = os.path.join("/kaggle/working", os.path.basename(src))
     subprocess.run(["cp", "-rn", src + "/.", dst], check=False)
     print(f"seeded {dst} <- {src}")
