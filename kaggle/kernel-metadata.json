@@ -9,5 +9,5 @@
   "enable_internet": "true",
   "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la", "mrigankrana/dvd-grid-state"],
   "competition_sources": [],
-  "kernel_sources": ["harshilsrivastav/deepvoice-defender-prep"]
+  "kernel_sources": ["mrigankrana/deepvoice-defender-prep"]
 }

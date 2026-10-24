@@ -12,7 +12,25 @@
 
 ---
 
-## Current status — prep v7 RUNNING (incident resolved); training auto-push armed
+## Current status — prep moved to mrigankrana (same-owner kernel_sources; privacy dead-end eliminated)
+
+### Account consolidation (2026-10-24, ~11:50 IST, user-directed)
+- Prep v7 on harshilsrivastav COMPLETE (~6 h) — but the first training push revealed
+  **the prep kernel had reverted to PRIVATE** (root cause: `"is_private": "true"` string
+  in `kernel-metadata-prep.json` — every CLI re-push re-enforced private; anonymous page
+  returned 404, and mrigankrana got `kernels.get denied`). kernel_sources requires the
+  source to be public OR same-owner.
+- **Fix (user decision): run EVERYTHING under mrigankrana.** Pushed
+  `mrigankrana/deepvoice-defender-prep` (v1 RUNNING, pushed 06:25 UTC 2026-10-24, CPU,
+  ~6 h ETA ≈ 12:25 UTC / 17:55 IST). Training metadata now uses
+  `kernel_sources: ["mrigankrana/deepvoice-defender-prep"]` — same-owner, so private is fine.
+- harshilsrivastav/deepvoice-defender-prep is now LEGACY: v8 (public) is still running on
+  his CPU quota — harmless, ignore it; its metadata kept with `"is_private": true` so no
+  further pushes from this repo can touch it.
+- Wasted session: mrigankrana/deepvoice-defender-training v1 (pushed 06:21 UTC) mounted NO
+  valid prep source (rejected at push) — it will error fast on missing processed features.
+  Expected; the automation pushes training v2 with the corrected source once mrigank prep
+  completes. GPU quota impact of a fast-fail session ≈ minutes.
 
 ### Prep incident + resolution (2026-10-24, 04:00–06:20 IST)
 - v2 (ran 21:12–~23:50 UTC) died mid-pool-build with an EMPTY log and NO output files —

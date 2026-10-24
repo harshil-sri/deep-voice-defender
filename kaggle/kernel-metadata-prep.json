@@ -4,7 +4,7 @@
   "code_file": "deepvoice_training.py",
   "language": "python",
   "kernel_type": "script",
-  "is_private": "true",
+  "is_private": true,
   "enable_gpu": "false",
   "enable_internet": "true",
   "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la"],
