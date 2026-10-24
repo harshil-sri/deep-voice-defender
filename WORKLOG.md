@@ -12,7 +12,26 @@
 
 ---
 
-## Current status — FULLY AUTONOMOUS (no user steps at all); prep still RUNNING, training starts automatically when it completes
+## Current status — prep v7 RUNNING (incident resolved); training auto-push armed
+
+### Prep incident + resolution (2026-10-24, 04:00–06:20 IST)
+- v2 (ran 21:12–~23:50 UTC) died mid-pool-build with an EMPTY log and NO output files —
+  log purged, cause unknown. Since nothing persisted, prep restarted from scratch.
+- v3–v6 then failed FAST with clear logs. Root cause: **Kaggle changed input mounting** —
+  datasets now mount at `/kaggle/input/datasets/<owner>/<slug>/…` (confirmed via
+  in-kernel listing: `kaggle inputs: ['datasets']` → `datasets/anishsarkar22/asvpoof-2019-dataset-la`).
+  The old hardcoded mount paths matched nothing.
+- Fix (committed): `kaggle/deepvoice_training.py` now locates the corpus/processed/
+  models/results by globbing `/kaggle/input` and `/kaggle/input/datasets` at 1–4 levels
+  (`_input_globs()` helper, keyed on the unique `ASVspoof2019_LA_cm_protocols` dir),
+  prints the input tree for debugging, and FATALs with a clear message if the corpus
+  is missing. Also fixed a `_glob` import-order bug introduced en route (v4).
+- **v7 RUNNING** (pushed ~06:15 IST). Log/API diagnostics recipe that worked:
+  `GET https://www.kaggle.com/api/v1/kernels/output?user_name=…&kernel_slug=…`
+  with `Authorization: Bearer <access_token>` → JSON with `log` (list of stream entries)
+  and `files` — no download needed.
+
+## Previous status — FULLY AUTONOMOUS (no user steps at all); prep still RUNNING, training starts automatically when it completes
 
 ### Fully hands-off design (final, 2026-10-24 ~03:20 IST)
 - **No browser dataset promotion is needed.** The training kernel mounts the prep
