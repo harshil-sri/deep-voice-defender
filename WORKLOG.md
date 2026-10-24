@@ -12,7 +12,22 @@
 
 ---
 
-## Current status — everything under mrigankrana, fully self-contained (NO internet, NO privacy deps)
+## Current status — PREP COMPLETE; TRAINING GRID SESSION 1 RUNNING (mrigankrana GPU)
+
+### Session 1 started (2026-10-24 13:21 UTC / 18:51 IST)
+- mrigank prep v2 COMPLETE at ~13:21 UTC (pushed 06:30:52 UTC, ~6 h 50 m total — the
+  tail is the eval-shard phase). Output verified via v1 API: 70 files incl.
+  `repo/data/processed/{dev,eval}_mel_shards/shard_*.npz` (kernel_sources will mount
+  this at `/kaggle/input/deepvoice-defender-prep/...`).
+- **mrigankrana/deepvoice-defender-training v2 pushed 13:21:58 UTC** — GPU session,
+  8.5 h budget, internet off, code dataset + corpus + grid-state + prep-output mounts.
+  Confirmed RUNNING 13:23 UTC. It seeds /kaggle/working/{models,results} from
+  dvd-grid-state (empty), then runs the grid in priority order
+  (seeds 42 first: full/none/opus/resample/noise) and stops cleanly at the budget.
+- Expected: ~2–3 runs finished this session (each run ≈ 2.5–3 h at 60 epochs on
+  Kaggle's P100/T4x2). Next polls: when COMPLETE → download output (≤500 MB),
+  grid-progress entry, upload dvd-grid-state version, re-push to continue.
+- Legacy note: harshilsrivastav prep v8 (public rerun) still running on his CPU — ignore.
 
 ### Account consolidation + internet elimination (2026-10-24, 06:20–06:35 UTC, user-directed)
 - Prep v7 on harshilsrivastav COMPLETE (~6 h) — but the first training push revealed
