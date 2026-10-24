@@ -12,25 +12,35 @@
 
 ---
 
-## Current status — prep moved to mrigankrana (same-owner kernel_sources; privacy dead-end eliminated)
+## Current status — everything under mrigankrana, fully self-contained (NO internet, NO privacy deps)
 
-### Account consolidation (2026-10-24, ~11:50 IST, user-directed)
+### Account consolidation + internet elimination (2026-10-24, 06:20–06:35 UTC, user-directed)
 - Prep v7 on harshilsrivastav COMPLETE (~6 h) — but the first training push revealed
   **the prep kernel had reverted to PRIVATE** (root cause: `"is_private": "true"` string
   in `kernel-metadata-prep.json` — every CLI re-push re-enforced private; anonymous page
   returned 404, and mrigankrana got `kernels.get denied`). kernel_sources requires the
   source to be public OR same-owner.
-- **Fix (user decision): run EVERYTHING under mrigankrana.** Pushed
-  `mrigankrana/deepvoice-defender-prep` (v1 RUNNING, pushed 06:25 UTC 2026-10-24, CPU,
-  ~6 h ETA ≈ 12:25 UTC / 17:55 IST). Training metadata now uses
-  `kernel_sources: ["mrigankrana/deepvoice-defender-prep"]` — same-owner, so private is fine.
-- harshilsrivastav/deepvoice-defender-prep is now LEGACY: v8 (public) is still running on
-  his CPU quota — harmless, ignore it; its metadata kept with `"is_private": true` so no
-  further pushes from this repo can touch it.
-- Wasted session: mrigankrana/deepvoice-defender-training v1 (pushed 06:21 UTC) mounted NO
-  valid prep source (rejected at push) — it will error fast on missing processed features.
-  Expected; the automation pushes training v2 with the corrected source once mrigank prep
-  completes. GPU quota impact of a fast-fail session ≈ minutes.
+- **User decision: run EVERYTHING under mrigankrana** so privacy never matters.
+- mrigank prep v1 then failed in 40 s: `Could not resolve host: github.com` —
+  **mrigankrana's sessions have NO internet** (account phone-verification was never
+  confirmed; Kaggle gates internet on it). The script's git-clone fallback died.
+- **Fix — kernels are now fully self-contained (enable_internet: false):**
+  1. Created dataset `mrigankrana/deep-voice-defender-code` (ready, private, same-owner,
+     ~300 KB: whole repo minus data/models/results/logs/.git/binaries; --dir-mode zip,
+     Kaggle unpacks directory zips on ingest — verified via `kaggle datasets files`).
+  2. `kaggle/deepvoice_training.py` REPO wiring reworked: `INPUT_ROOTS`/`_input_globs`
+     moved above it; it now searches ALL mount depths for a dir containing
+     `src/train_kaggle.py` (matches `deep-voice-defender-code` dataset) and copies it to
+     /kaggle/working/repo; git clone remains only as a fallback.
+  3. Both mrigank kernels: dataset_sources += deep-voice-defender-code, internet OFF.
+     `kernel-metadata-prep.json` is now the **mrigank** prep metadata (harshil prep is legacy).
+- **mrigank prep v2 RUNNING** (pushed 06:30:52 UTC, ETA ~6 h ≈ 12:30 UTC / 18:00 IST).
+  Confirmed RUNNING at 06:33 UTC — outlived v1's 40 s failure, so repo wiring worked.
+- Training kernel v1 (pushed 06:21 UTC with internet ON + invalid prep source) is a
+  wasted fast-fail session — expected. The automation pushes training v2 (same-owner
+  prep source, code dataset, internet off) once mrigank prep v2 COMPLETES.
+- harshilsrivastav/deepvoice-defender-prep v8 (public rerun) still burning his CPU
+  quota harmlessly — IGNORE it.
 
 ### Prep incident + resolution (2026-10-24, 04:00–06:20 IST)
 - v2 (ran 21:12–~23:50 UTC) died mid-pool-build with an EMPTY log and NO output files —

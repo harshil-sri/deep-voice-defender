@@ -25,12 +25,31 @@ import sys
 import subprocess
 import argparse
 
+INPUT_ROOTS = ["/kaggle/input", "/kaggle/input/datasets"]
+
+
+def _input_globs(suffix):
+    """Glob a path suffix under every input root, 1..4 levels deep
+    (Kaggle mounts have been seen as <root>/<slug>/... and
+    <root>/datasets/<owner>/<slug>/...)."""
+    hits = []
+    for root in INPUT_ROOTS:
+        for depth in ("/*", "/*/*", "/*/*/*", "/*/*/*/*"):
+            hits.extend(_glob.glob(root + depth + suffix))
+    return sorted(hits)
+
+
 REPO = os.environ.get("DVD_REPO", "/kaggle/working/repo")
 if not os.path.isdir(REPO):
-    code_hits = sorted(c for root in ("/kaggle/input", "/kaggle/input/datasets")
-                       for c in _glob.glob(root + "/*deep*voice*") if os.path.isdir(c))
+    # Prefer the self-contained code dataset (works on accounts without
+    # internet); the git-clone fallback only fires when it is not mounted.
+    cands = set(_input_globs("/deep-voice-defender-code"))
+    cands.update(c for root in INPUT_ROOTS for c in _glob.glob(root + "/*deep*voice*"))
+    code_hits = sorted(c for c in cands if os.path.isdir(c)
+                       and os.path.isfile(os.path.join(c, "src", "train_kaggle.py")))
     if code_hits:
         subprocess.run(["cp", "-r", code_hits[0], REPO], check=False)
+        print(f"repo code <- {code_hits[0]}")
     else:
         subprocess.run(["git", "clone", "https://github.com/harshil-sri/deep-voice-defender.git", REPO], check=True)
 
@@ -61,20 +80,6 @@ for root, sub in [
     if os.path.isdir(os.path.join(cand, "ASVspoof2019_LA_cm_protocols")):
         KAGGLE_DATA = cand
         break
-INPUT_ROOTS = ["/kaggle/input", "/kaggle/input/datasets"]
-
-
-def _input_globs(suffix):
-    """Glob a path suffix under every input root, 1 and 2 levels deep
-    (Kaggle mounts have been seen as <root>/<slug>/... and
-    <root>/<owner>/<slug>/...)."""
-    hits = []
-    for root in INPUT_ROOTS:
-        for depth in ("/*", "/*/*", "/*/*/*", "/*/*/*/*"):
-            hits.extend(_glob.glob(root + depth + suffix))
-    return sorted(hits)
-
-
 for hit in _input_globs("/ASVspoof2019_LA_cm_protocols") or []:
     KAGGLE_DATA = os.path.dirname(hit)
     break
