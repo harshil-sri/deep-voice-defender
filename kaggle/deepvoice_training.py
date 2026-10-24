@@ -218,12 +218,17 @@ if __name__ == "__main__":
     parser.add_argument("--bootstrap", action="store_true")
     args = parser.parse_args()
     if args.stage is None:
+        try:
+            smi = subprocess.run(["nvidia-smi"], capture_output=True, text=True)
+            print("nvidia-smi:", (smi.stdout or smi.stderr or "<empty>")[:400].strip())
+        except FileNotFoundError:
+            print("nvidia-smi: not found on this session (no GPU attached)")
         gpus = []
         try:
             import tensorflow as tf
             gpus = tf.config.list_physical_devices("GPU")
-        except Exception:
-            pass
+        except Exception as e:
+            print("TF GPU probe failed:", e)
         args.stage = "grid" if gpus else "prep"
         # all 15 runs finished -> this push becomes the clean eval sweep
         if args.stage == "grid" and all(
@@ -231,5 +236,14 @@ if __name__ == "__main__":
                          epochs=args.epochs) for m, s in GRID_PRIORITY
         ):
             args.stage = "eval"
+        if args.stage == "prep" and (
+            _input_globs("/processed") or _input_globs("/data/processed")
+        ):
+            # No GPU but the prep output is mounted: this is the TRAINING kernel
+            # on an account/session without GPU acceleration (phone verification?).
+            # Rerunning prep would just crash on the read-only mount.
+            sys.exit("FATAL: no GPU detected but processed data is mounted — "
+                     "GPU acceleration unavailable for this account/session; "
+                     "grid needs a GPU (verify nvidia-smi output above)")
         print(f"no stage given: GPU={bool(gpus)} -> stage={args.stage}")
     dict(prep=stage_prep, train=stage_train, grid=stage_grid, eval=stage_eval)[args.stage](args)

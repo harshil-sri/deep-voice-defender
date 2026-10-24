@@ -12,7 +12,40 @@
 
 ---
 
-## Current status — PREP COMPLETE; TRAINING GRID SESSION 1 RUNNING (mrigankrana GPU)
+## Current status — mrigank has NO GPU (account-level); GRID LIVE on harshilsrivastav GPU
+
+### mrigank GPU blocker + migration to harshilsrivastav (2026-10-24, 13:51–14:10 UTC)
+- Training v2 on mrigank ERRORED (~5 min in): `cuInit` error 303, GPU=False → auto-stage
+  picked prep → crashed writing into the read-only mounted processed dir
+  (`OSError: Read-only file system: data/processed/train_waveforms.npy`).
+- v3 (added nvidia-smi diagnostics) confirmed the root cause: **`nvidia-smi` does not
+  exist on mrigankrana's sessions — the account has NO GPU access** (phone verification
+  was never done; Kaggle gates GPU + internet on it). CPU sessions work fine (prep v2
+  proved that). **mrigank training is blocked until its account is phone-verified —
+  user action required if we ever want that account for GPU.**
+- Kernel script hardened: prep stage now FATALs loudly if it would rerun with a
+  read-only processed mount (instead of the cryptic OSError), and nvidia-smi output
+  (or its absence) is printed at stage selection.
+- **Migration (zero user steps): training now runs as
+  `harshilsrivastav/deepvoice-defender-training`** — harshil IS phone-verified (GPU
+  quota was simply exhausted last week; evidently reset with the new week). Created:
+  - `harshilsrivastav/deep-voice-defender-code` (same code dataset as mrigank's, ready)
+  - `harshilsrivastav/dvd-grid-state-h` (private grid-state for session continuity, ready)
+  - harshil prep v8 (public rerun) is COMPLETE, so `kernel_sources:
+    ["harshilsrivastav/deepvoice-defender-prep"]` mounts the processed shards same-owner.
+  - Metadata saved as `kaggle/kernel-metadata-training-harshil.json` (mrigank metadata
+    kept in `kernel-metadata.json` for when that account gets verified).
+- **TRAINING V1 (harshil) pushed 14:00:09 UTC, RUNNING at 14:11 UTC** — past the ~5 min
+  failure window ⇒ GPU present, grid stage training seed-42 runs. Budget 8.5 h ⇒
+  completes ≈ 22:30 UTC (03:00 IST Oct 25) if the budget is fully used.
+- NOTE for future polls: harshil training status via DEFAULT env
+  (`kaggle kernels status harshilsrivastav/deepvoice-defender-training`); output
+  download also default env. On COMPLETE: archive output → upload version of
+  `harshilsrivastav/dvd-grid-state-h` → re-push harshil training kernel
+  (stage /tmp with kaggle/kernel-metadata-training-harshil.json renamed to
+  kernel-metadata.json, push under default env). mrigank's dvd-grid-state is unused.
+
+## Previous status — PREP COMPLETE; TRAINING GRID SESSION 1 RUNNING (mrigankrana GPU)
 
 ### Session 1 started (2026-10-24 13:21 UTC / 18:51 IST)
 - mrigank prep v2 COMPLETE at ~13:21 UTC (pushed 06:30:52 UTC, ~6 h 50 m total — the

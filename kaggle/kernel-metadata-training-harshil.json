@@ -1,0 +1,13 @@
+{
+  "id": "harshilsrivastav/deepvoice-defender-training",
+  "title": "DeepVoice Defender Training",
+  "code_file": "deepvoice_training.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": false,
+  "dataset_sources": ["anishsarkar22/asvpoof-2019-dataset-la", "harshilsrivastav/deep-voice-defender-code", "harshilsrivastav/dvd-grid-state-h"],
+  "competition_sources": [],
+  "kernel_sources": ["harshilsrivastav/deepvoice-defender-prep"]
+}
