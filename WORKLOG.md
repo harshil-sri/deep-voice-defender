@@ -12,7 +12,42 @@
 
 ---
 
-## Current status — mrigank has NO GPU (account-level); GRID LIVE on harshilsrivastav GPU
+## Current status — SESSION 1 DONE: ALL 15 GRID RUNS TRAINED; eval session next
+
+### Grid progress — session 1 (harshilsrivastav GPU, pushed 14:00:09 UTC, COMPLETE 19:21 UTC, ~5.2 h)
+Runs are FAR faster than estimated (precomputed mels, lightweight model, ~16 s/epoch
+train + ~38 s/epoch dev-EER eval): all 15 runs trained AND early-stopped in ONE session.
+Clean finish ("GRID STAGE COMPLETE"); no eval ran in-session (grid finished first).
+Best dev EER per run (finished = early-stopped or hit 60-epoch cap — all finished):
+
+| run | mode | seed | last_epoch | best_epoch | best dev EER |
+|---|---|---|---|---|---|
+| dvd_full_seed42 | full | 42 | 31 | 21 | 3.61% |
+| dvd_full_seed123 | full | 123 | 20 | 10 | 4.00% |
+| dvd_full_seed456 | full | 456 | 47 | 37 | 2.51% |
+| dvd_none_seed42 | none | 42 | 32 | 22 | 6.14% |
+| dvd_none_seed123 | none | 123 | 20 | 10 | 8.75% |
+| dvd_none_seed456 | none | 456 | 31 | 21 | 5.53% |
+| dvd_opus_seed42 | opus | 42 | 22 | 12 | 8.87% |
+| dvd_opus_seed123 | opus | 123 | 24 | 14 | 9.54% |
+| dvd_opus_seed456 | opus | 456 | 22 | 12 | 8.87% |
+| dvd_resample_seed42 | resample | 42 | 11 | 1 | 14.80% |
+| dvd_resample_seed123 | resample | 123 | 18 | 8 | 17.74% |
+| dvd_resample_seed456 | resample | 456 | 12 | 2 | 11.58% |
+| dvd_noise_seed42 | noise | 42 | 14 | 4 | 22.02% |
+| dvd_noise_seed123 | noise | 123 | 40 | 30 | 3.06% |
+| dvd_noise_seed456 | noise | 456 | 15 | 5 | 28.66% |
+
+Early observations (dev = clean, so aug-mode deltas here do NOT measure robustness yet):
+full aug has the best mean dev EER (~3.4%), noise-aug seeds vary wildly (3.1%–28.7% —
+two seeds collapsed to ~random-ish dev EER; noise hurts clean-dev fit as expected).
+The real story is the clean+codec EVAL sweep next.
+- Output archived to results/kaggle_sessions/1 (1.7 GB, models incl. ckpts).
+- Next: upload models/ as new version of harshilsrivastav/dvd-grid-state-h, then push
+  the training kernel once — all 15 finished ⇒ it auto-runs the EVAL stage
+  (dev+eval clean per run, ~45 min) ⇒ after that session, stats.py + final table.
+
+## Previous status — mrigank has NO GPU (account-level); GRID LIVE on harshilsrivastav GPU
 
 ### mrigank GPU blocker + migration to harshilsrivastav (2026-10-24, 13:51–14:10 UTC)
 - Training v2 on mrigank ERRORED (~5 min in): `cuInit` error 303, GPU=False → auto-stage
