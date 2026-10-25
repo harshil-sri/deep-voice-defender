@@ -12,7 +12,53 @@
 
 ---
 
-## Current status — SESSION 1 DONE: ALL 15 GRID RUNS TRAINED; eval session next
+## Current status — PAUSED by Harshil (2026-10-25): polish session done. Runbook written, seeding bug + MP3 delay bug fixed. Next action = eval push (docs/SUPERVISOR_RUNBOOK.md §4)
+
+### Polish session (2026-10-25, ~12:15–13:00 UTC, Harshil-directed: "stop the runs, use the big-model time to tidy up and write handoff docs")
+- **Pipeline paused**: monitor automation DELETED (verbatim prompt preserved in
+  `docs/automation-prompt.md`); no Kaggle session running; nothing pending on Kaggle.
+- **`docs/SUPERVISOR_RUNBOOK.md` written** — the agent-facing playbook: golden rules,
+  auth cheat sheet, exact push/download/log commands, the eval-session procedure with a
+  verification checklist, remaining study work (codec matrix → 2021 → figures → paper),
+  failure playbooks, and the numbers snapshot. A weaker model supervising the pipeline
+  should read ONLY this + WORKLOG.
+- **Seeding bug FIXED** (session-2 incident above): `kaggle/deepvoice_training.py` now
+  skips prep-output placeholder mounts and prints `grid state after seeding: N/15`.
+- **MP3 encoder-delay bug FIXED** (`src/codec.py::_align_delay`): ffmpeg does not trim
+  LAME's 529-sample delay on decode → every MP3 roundtrip was sample-shifted (sanity
+  corr was −0.15 on a 220 Hz sine!). Roundtrips now auto-align via bounded
+  cross-correlation (MP3 0.94–0.98 after fix; aac/opus/AMR verified untouched at
+  lag 0). Trained artifacts are NOT affected (pool uses opus/resample/noise only);
+  the fix matters for the upcoming codec-matrix eval which includes mp3_16k/32k/64k.
+- Repo tidied: v2 `src/train.py`, `scripts/run_ablation.sh`, `src/fix_model.py`
+  committed; legacy v1 outputs moved to `results/legacy_v1/`; `.gitignore` covers
+  `*.keras`, `graphify-out/`, session models/repo/logs. `tests/sanity_check.py` now
+  fully passes. README roadmap + PROJECT_CONTEXT status updated to reality.
+
+### Session-2 incident + fix (2026-10-25, diagnosed 12:15 UTC)
+- The "eval" push (v2, 19:40 UTC Oct 24) **silently retrained the whole grid** — its log
+  shows `stage=grid`, all 15 runs retrained, NO eval, session ended at the budget.
+- Root cause: seeding globs `/models` across ALL mounts; the prep kernel's output
+  contains `repo/models` + `repo/results` placeholders, and because sources sort
+  alphabetically (deepvoice-defender-prep < datasets/…), `cp -rn` (first-wins) seeded
+  the placeholders — `/kaggle/working/models` had no state.json ⇒ all runs "unfinished"
+  ⇒ grid reran everything (~8 h GPU wasted).
+- **Fix (committed)**: seeding now skips any path containing `deepvoice-defender-prep`,
+  and stage selection prints `grid state after seeding: N/15 runs finished` so a wipe
+  is visible in one line.
+- **Canonical model set = SESSION 1** (archived in results/kaggle_sessions/1/models and
+  dvd-grid-state-h v2 — layout verified: models/dvd_*/state.json present). Session 2's
+  retrained models (results/kaggle_sessions/2/models, local only) are DISCARDED; its
+  numbers also show heavy GPU nondeterminism (noise_seed123 3.1%→40.3% between sessions;
+  resample_seed456 best@epoch0 = never learned). Keep in mind for the paper's seed-variance
+  discussion: per-seed spread within one session is the statistic to report.
+- Consequence: best dev EER numbers in the table above are from session 1 and stand.
+- **Next action (runbook §4): push training kernel v3 with the fix → it seeds session-1
+  models, prints 15/15, auto-runs the EVAL stage (~45–60 min).** THEN stats.py etc.
+- Harshil paused the pipeline 2026-10-25: monitor automation DELETED (prompt preserved
+  verbatim in docs/automation-prompt.md), no kernels running, nothing pending on Kaggle.
+
+## Previous status — SESSION 1 DONE: ALL 15 GRID RUNS TRAINED; eval session next
 
 ### Grid progress — session 1 (harshilsrivastav GPU, pushed 14:00:09 UTC, COMPLETE 19:21 UTC, ~5.2 h)
 Runs are FAR faster than estimated (precomputed mels, lightweight model, ~16 s/epoch

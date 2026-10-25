@@ -1,8 +1,8 @@
 # Deep-Voice Defender — Project Context
 
-**Last Updated:** 2026-10-23
-**Status:** v2 research infrastructure COMPLETE (not yet trained). Paper-grade rewrite in progress.
-**Read next:** `WORKLOG.md` (handoff log — most recent state), `paper/PLAN.md` (claims → experiments map).
+**Last Updated:** 2026-10-25
+**Status:** All 15 grid runs TRAINED on Kaggle (session 1, 2026-10-24); clean-eval sweep is the next action; pipeline currently PAUSED by Harshil.
+**Read next:** `WORKLOG.md` top section (live handoff log), `docs/SUPERVISOR_RUNBOOK.md` (how to supervise the remaining Kaggle sessions — written for an AI agent), `paper/PLAN.md` (claims → experiments map).
 
 ---
 
@@ -126,7 +126,10 @@ colab/                 notebook
 paper/                 main.tex, references.bib, PLAN.md
 tests/sanity_check.py  no-TF sanity suite (run: python3 tests/sanity_check.py)
 WORKLOG.md             handoff log — read this first when resuming
+docs/SUPERVISOR_RUNBOOK.md  agent-facing playbook for the Kaggle pipeline (state, commands, failure playbooks)
+docs/automation-prompt.md   verbatim prompt of the (currently deleted) 30-min monitor automation
 ```
 
-v1 files kept as-is: app.py, src/{model,fix_model,inference,predict}.py,
-src/train.py (legacy local trainer — do not use for the paper).
+v1 files kept as-is: app.py, src/{model,fix_model,inference,predict}.py.
+src/train.py is the local (v2-mode-aware) trainer; all paper runs use
+src/train_kaggle.py on Kaggle via kaggle/deepvoice_training.py.

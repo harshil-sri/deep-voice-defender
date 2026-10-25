@@ -95,12 +95,20 @@ python src/model.py
 
 ## 🗺️ Roadmap & Progress
 
-- [x] **Project Setup:** GitHub Repo, WSL Environment, GPU Configuration.
-- [x] **Data Pipeline:** Audio Loading, Resampling, Padding.
-- [x] **Augmentation Engine:** Build `augmentation.py` to simulate OPUS/Noise.
-- [x] **Model Architecture:** Design Robust CNN (Conv2D, MaxPool).
-- [x] **Training:** Run training loop on RTX 4060/5060.
-- [ ] **Testing:** Test specifically on files sent via WhatsApp to verify USP.
+**Current: conference-paper upgrade (v2) — an empirical codec-robustness study on ASVspoof 2019 LA.**
+
+- [x] **v2 pipeline:** preprocessing (global-stat mels), static augmentation pool
+      (true-Opus / resample / noise), resumable trainer, official EER + min t-DCF eval.
+- [x] **All 15 training runs** (5 augmentation modes × 3 seeds) trained on Kaggle GPUs
+      (2026-10-24; best dev EER 2.5–4.0 % for the full-augmentation mode).
+- [ ] **Clean eval sweep** on dev+eval for all 15 models (next step — see
+      [`docs/SUPERVISOR_RUNBOOK.md`](docs/SUPERVISOR_RUNBOOK.md) for the exact procedure).
+- [ ] **Codec-robustness matrix** (re-encoded eval set) + **ASVspoof 2021 LA** cross-corpus eval.
+- [ ] **Figures, efficiency table, paper** (`paper/PLAN.md`).
+
+Supervising the training/eval pipeline? Start with
+[`docs/SUPERVISOR_RUNBOOK.md`](docs/SUPERVISOR_RUNBOOK.md) — it has every command,
+guardrail and failure playbook. Project state lives in [`WORKLOG.md`](WORKLOG.md).
 
 ---
 

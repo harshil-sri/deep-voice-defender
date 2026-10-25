@@ -113,7 +113,15 @@ for suffix in ("/processed", "/data/processed", "/repo/data/processed"):
 
 # Seed models/results from previous sessions (dvd-grid-state dataset) so the
 # grid and eval stages see everything that finished before this session.
+# ONLY trust dvd-grid-state mounts here: the prep kernel's output also carries
+# repo/models and repo/results placeholders, and cp -rn is first-wins — seeding
+# from them silently wiped the real grid state and retrained everything (the
+# session-2 incident). Sorted order puts deepvoice-defender-prep first, so it
+# must be excluded explicitly.
 for src in _input_globs("/models") + _input_globs("/results"):
+    if "deepvoice-defender-prep" in src:
+        print(f"SKIPPED seeding from {src} (prep-output placeholder)")
+        continue
     dst = os.path.join("/kaggle/working", os.path.basename(src))
     subprocess.run(["cp", "-rn", src + "/.", dst], check=False)
     print(f"seeded {dst} <- {src}")
@@ -231,10 +239,12 @@ if __name__ == "__main__":
             print("TF GPU probe failed:", e)
         args.stage = "grid" if gpus else "prep"
         # all 15 runs finished -> this push becomes the clean eval sweep
-        if args.stage == "grid" and all(
+        n_finished = sum(
             run_finished(os.path.join("/kaggle/working/models", f"dvd_{m}_seed{s}"),
                          epochs=args.epochs) for m, s in GRID_PRIORITY
-        ):
+        )
+        print(f"grid state after seeding: {n_finished}/15 runs finished")
+        if args.stage == "grid" and n_finished == len(GRID_PRIORITY):
             args.stage = "eval"
         if args.stage == "prep" and (
             _input_globs("/processed") or _input_globs("/data/processed")

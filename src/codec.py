@@ -110,7 +110,34 @@ def codec_roundtrip(waveform, codec, bitrate, sr=16000):
 
         decoded, _ = sf.read(out, dtype="float32")
     decoded = pad_or_trim(decoded, n_in)
-    return decoded
+    return _align_delay(decoded, waveform)
+
+
+def _align_delay(out, ref, max_lag=4096):
+    """Remove a constant codec encoder/decoder delay.
+
+    Some ffmpeg encoders shift the decoded signal relative to the input
+    (LAME/mp3: 529 samples at 16 kHz — ffmpeg does not trim it on decode),
+    which silently misaligns downstream mel frames. Detect the lag by
+    cross-correlation and trim/pad it away, but only when it clearly beats
+    lag 0 — never touch already-aligned codecs (aac/opus measure lag 0).
+    """
+    n = len(ref)
+    if len(out) != n or n < 8192:
+        return out
+    ref = ref.astype(np.float64)
+    out64 = out.astype(np.float64)
+    xc = np.fft.irfft(np.fft.rfft(out64) * np.conj(np.fft.rfft(ref)), n)
+    norm = np.linalg.norm(ref) * np.linalg.norm(out64) + 1e-12
+    lim = min(max_lag, n // 4)
+    pos = int(np.argmax(np.abs(xc[:lim])))
+    neg = n - lim + int(np.argmax(np.abs(xc[n - lim:])))  # negative lags wrap to the end
+    lag, corr = (pos, xc[pos] / norm) if abs(xc[pos]) >= abs(xc[neg]) else (neg - n, xc[neg] / norm)
+    corr0 = xc[0] / norm
+    if abs(lag) < 1 or abs(corr) < 0.5 or abs(corr) < abs(corr0) + 0.05:
+        return out
+    pad = np.full(abs(lag), out[0] if lag < 0 else out[-1], dtype=out.dtype)
+    return np.concatenate([out[lag:], pad]) if lag > 0 else np.concatenate([pad, out[:lag]])
 
 
 def random_codec_degrade(waveform, rng, sr=16000):
