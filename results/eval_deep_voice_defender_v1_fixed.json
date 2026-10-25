@@ -1,0 +1,28 @@
+{
+  "model_path": "deep_voice_defender_v1_fixed.keras",
+  "protocol_file": "data/raw/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
+  "audio_dir": "data/raw/LA/LA/ASVspoof2019_LA_eval/flac",
+  "timestamp": "2026-09-20T00:04:33.902311",
+  "num_samples": 71237,
+  "metrics": {
+    "eer": 0.11951053704962614,
+    "eer_percent": 11.951053704962614,
+    "min_tDCF": 0.01,
+    "accuracy": 0.8714432106910734,
+    "auc": 0.915770928431076,
+    "precision": 0.4399920122478866,
+    "recall": 0.8987083616587356,
+    "f1": 0.5907587809455715,
+    "confusion_matrix": {
+      "tp": 6610,
+      "fp": 8413,
+      "tn": 55469,
+      "fn": 745
+    },
+    "latency_ms": {
+      "mean": 2.278268237681375,
+      "p50": 2.24362313747406,
+      "p95": 3.9117857813835144
+    }
+  }
+}

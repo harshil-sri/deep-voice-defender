@@ -22,3 +22,10 @@ logs/
 models/*
 !models/.gitkeep
 kaggle/working/
+
+# Tooling + artifact junk (2026-10-25 tidy)
+graphify-out/
+*.keras
+results/kaggle_sessions/*/models/
+results/kaggle_sessions/*/repo/
+results/kaggle_sessions/*.log
