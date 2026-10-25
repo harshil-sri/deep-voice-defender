@@ -28,4 +28,4 @@ graphify-out/
 *.keras
 results/kaggle_sessions/*/models/
 results/kaggle_sessions/*/repo/
-results/kaggle_sessions/*.log
+results/kaggle_sessions/**/deepvoice-defender-training.log
